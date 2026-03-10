@@ -1,0 +1,74 @@
+/* ==========================================================================
+   Typography System
+   ========================================================================== */
+
+body {
+    font-family: var(--font-body);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 1.2;
+    margin: 0 0 1rem 0;
+    color: var(--text-primary);
+}
+
+.font-display {
+    font-family: var(--font-display);
+}
+
+.font-body {
+    font-family: var(--font-body);
+}
+
+.font-rounded {
+    font-family: var(--font-rounded);
+}
+
+.font-reading {
+    font-family: var(--font-reading);
+}
+
+.font-elegant {
+    font-family: var(--font-elegant);
+}
+
+.font-mono {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.text-xs {
+    font-size: 0.75rem;
+}
+
+.text-secondary {
+    color: var(--text-secondary);
+}
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+.text-primary {
+    color: var(--primary);
+}
+
+.text-center {
+    text-align: center;
+}

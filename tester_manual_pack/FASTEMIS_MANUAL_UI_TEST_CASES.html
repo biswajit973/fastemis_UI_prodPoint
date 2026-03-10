@@ -1,0 +1,452 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>FastEMIs Manual UI Test Cases</title>
+<style>
+body{font-family:Arial,sans-serif;line-height:1.6;color:#1f2937;margin:40px;}
+h1{font-size:28px;color:#0b2743;margin:0 0 12px;}
+h2{font-size:22px;color:#0b2743;margin-top:28px;border-bottom:1px solid #dbe3ee;padding-bottom:6px;}
+h3{font-size:18px;color:#14395e;margin-top:20px;}
+p,li{font-size:14px;}
+ul,ol{margin-top:8px;margin-bottom:12px;}
+code{background:#f3f4f6;padding:2px 4px;border-radius:4px;}
+.placeholder{border:1px dashed #94a3b8;padding:14px;margin:16px 0;background:#f8fafc;font-weight:bold;color:#334155;}
+.rule{margin:20px 0;border-top:2px solid #e5e7eb;}
+</style></head><body>
+<h1>FastEMIs Manual UI Test Cases</h1>
+<p></p>
+<h2>For Manual Tester</h2>
+<p></p>
+<p>This document is for UI testing only.</p>
+<p>Do not use database, API tools, console, or code.</p>
+<p>Only test from the website screens.</p>
+<p></p>
+<p>After each test case:</p>
+<ul><li>take screenshots</li></ul>
+<ul><li>paste them in the Word file</li></ul>
+<ul><li>write PASS or FAIL</li></ul>
+<ul><li>if FAIL, write a short bug note</li></ul>
+<p></p>
+<h2>Basic Rules</h2>
+<p></p>
+<ul><li>Test on desktop browser.</li></ul>
+<ul><li>Test again in mobile view.</li></ul>
+<ul><li>Use simple clear screenshots.</li></ul>
+<ul><li>If one step fails, write the exact page and exact action.</li></ul>
+<ul><li>Do not skip validation checks.</li></ul>
+<p></p>
+<h2>Before You Start</h2>
+<p></p>
+<p>You need:</p>
+<ul><li>2 new user accounts created from UI</li></ul>
+<ul><li>1 agent login given by team</li></ul>
+<ul><li>stable internet</li></ul>
+<ul><li>desktop Chrome browser</li></ul>
+<ul><li>mobile responsive mode in browser or real phone if available</li></ul>
+<p></p>
+<p>Suggested screenshot file names:</p>
+<ul><li>TC1_User1_Signup.png</li></ul>
+<ul><li>TC1_User2_CompleteProfile.png</li></ul>
+<ul><li>TC2_UserChatToAgent.png</li></ul>
+<ul><li>TC3_GlobalPaymentConfig.png</li></ul>
+<ul><li>TC4_AgreementSignature.png</li></ul>
+<ul><li>TC5_CommunityChat.png</li></ul>
+<ul><li>TC6_UIConfig.png</li></ul>
+<ul><li>TC7_SecurityTest.png</li></ul>
+<p></p>
+<h2>Bug Report Format</h2>
+<p></p>
+<p>Use this simple format if something fails:</p>
+<p></p>
+<ul><li>Test Case ID:</li></ul>
+<ul><li>Page URL:</li></ul>
+<ul><li>What you clicked:</li></ul>
+<ul><li>What happened:</li></ul>
+<ul><li>What should happen:</li></ul>
+<ul><li>Screenshot name:</li></ul>
+<p></p>
+<div class="rule"></div>
+<p></p>
+<h1>Test Case 1 - User Sign Up and Complete Profile</h1>
+<p></p>
+<h2>Goal</h2>
+<p>Check that 2 users can sign up from UI and complete profile details properly.</p>
+<p></p>
+<h2>Pages</h2>
+<ul><li>/sign-up</li></ul>
+<ul><li>/dashboard/complete-profile</li></ul>
+<ul><li>/dashboard</li></ul>
+<ul><li>agent side applicants/profile details</li></ul>
+<p></p>
+<h2>Steps</h2>
+<p>1. Open the sign up page.</p>
+<p>2. Create User 1 from UI using a fresh Gmail ID.</p>
+<p>3. Create User 2 from UI using another fresh Gmail ID.</p>
+<p>4. After sign up, check that the user goes to the second details page.</p>
+<p>5. On the complete profile page, first try to click submit without filling all required fields.</p>
+<p>6. Check if validation messages are shown correctly.</p>
+<p>7. Fill all fields for User 1.</p>
+<p>8. Fill all fields for User 2.</p>
+<p>9. Upload all required files.</p>
+<p>10. Save the profile.</p>
+<p>11. Open user side My Profile and check all saved details.</p>
+<p>12. Login from agent side.</p>
+<p>13. Open applicants page.</p>
+<p>14. Open both user profile details from agent side.</p>
+<p>15. Check that agent can see the same saved details.</p>
+<p></p>
+<h2>Expected Result</h2>
+<ul><li>Sign up works for both users.</li></ul>
+<ul><li>Required field validation works.</li></ul>
+<ul><li>Complete profile page saves correctly.</li></ul>
+<ul><li>My Profile shows saved details.</li></ul>
+<ul><li>Agent side also shows the same details.</li></ul>
+<p></p>
+<h2>Tester Notes</h2>
+<ul><li>Check desktop and mobile layout.</li></ul>
+<ul><li>Check if file preview is visible.</li></ul>
+<ul><li>Check if any field value is missing after save.</li></ul>
+<p></p>
+<h2>Screenshots to Add</h2>
+<ul><li>Sign up page for User 1</li></ul>
+<ul><li>Sign up page for User 2</li></ul>
+<ul><li>Validation error example</li></ul>
+<ul><li>Completed profile page for User 1</li></ul>
+<ul><li>Completed profile page for User 2</li></ul>
+<ul><li>User My Profile page</li></ul>
+<ul><li>Agent applicant profile detail page</li></ul>
+<p></p>
+<div class="placeholder">[PASTE SCREENSHOTS FOR TEST CASE 1 HERE]</div>
+<p></p>
+<div class="rule"></div>
+<p></p>
+<h1>Test Case 2 - Support Chat Between User and Agent</h1>
+<p></p>
+<h2>Goal</h2>
+<p>Check that both users can chat with agent and both sides can read messages correctly.</p>
+<p></p>
+<h2>Pages</h2>
+<ul><li>user side support chat</li></ul>
+<ul><li>agent side support chat list and chat window</li></ul>
+<p></p>
+<h2>Steps</h2>
+<p>1. Login as User 1.</p>
+<p>2. Open Chat With Support.</p>
+<p>3. Send this message: `Hi sir, I have filled up details. What's next?`</p>
+<p>4. Upload a screenshot of User 1 My Profile page in the support chat.</p>
+<p>5. Login as User 2.</p>
+<p>6. Repeat the same test for User 2.</p>
+<p>7. Login as agent.</p>
+<p>8. Open support chat list.</p>
+<p>9. Open chat of User 1 and User 2.</p>
+<p>10. Check that text and uploaded screenshot are clearly visible.</p>
+<p>11. Reply to both users: `Next step is do the payment.`</p>
+<p>12. Login back as User 1 and User 2.</p>
+<p>13. Check if agent reply is visible.</p>
+<p>14. Send reply from user side: `Ok sir, we will do the payment.`</p>
+<p>15. Check from agent side again.</p>
+<p></p>
+<h2>Expected Result</h2>
+<ul><li>Text messages appear on both sides.</li></ul>
+<ul><li>Uploaded screenshot is visible clearly.</li></ul>
+<ul><li>Time order is correct.</li></ul>
+<ul><li>No overlap in chat UI.</li></ul>
+<ul><li>Agent and user both can read the full message and media.</li></ul>
+<p></p>
+<h2>Tester Notes</h2>
+<ul><li>Test desktop and mobile view.</li></ul>
+<ul><li>Check scroll behavior.</li></ul>
+<ul><li>Check that last message is not hidden under input box.</li></ul>
+<p></p>
+<h2>Screenshots to Add</h2>
+<ul><li>User 1 support chat</li></ul>
+<ul><li>User 2 support chat</li></ul>
+<ul><li>Agent support chat for User 1</li></ul>
+<ul><li>Agent support chat for User 2</li></ul>
+<ul><li>Example with uploaded image visible</li></ul>
+<p></p>
+<div class="placeholder">[PASTE SCREENSHOTS FOR TEST CASE 2 HERE]</div>
+<p></p>
+<div class="rule"></div>
+<p></p>
+<h1>Test Case 3 - Payment Config and Payment Proof</h1>
+<p></p>
+<h2>Goal</h2>
+<p>Check global payment config, user-specific payment config, payment page, timer, and payment proof upload.</p>
+<p></p>
+<h2>Pages</h2>
+<ul><li>/agent/payments</li></ul>
+<ul><li>user side payment page</li></ul>
+<ul><li>support chat</li></ul>
+<p></p>
+<h2>Steps</h2>
+<p>1. Login as agent.</p>
+<p>2. Open Payment Home.</p>
+<p>3. Create one Global Payment Config.</p>
+<p>4. Save it.</p>
+<p>5. Tell both users by support chat: `Payment config updated. You can do the payment.`</p>
+<p>6. Login as User 1.</p>
+<p>7. Open payment page.</p>
+<p>8. Check that payment details are visible.</p>
+<p>9. Check timer and payment UI behavior.</p>
+<p>10. Upload payment proof from User 1 side.</p>
+<p>11. Login as agent and check if payment proof is visible.</p>
+<p>12. Now create one User-Specific Payment Config only for User 2.</p>
+<p>13. Save it.</p>
+<p>14. Login as User 2.</p>
+<p>15. Open payment page.</p>
+<p>16. Check that User 2 sees the user-specific payment config, not only the global config.</p>
+<p>17. Upload payment proof from User 2 side.</p>
+<p>18. Login as agent and check proof again.</p>
+<p></p>
+<h2>Expected Result</h2>
+<ul><li>Global payment config works.</li></ul>
+<ul><li>User-specific payment config overrides global for that one user.</li></ul>
+<ul><li>Timer works properly.</li></ul>
+<ul><li>Payment proof upload works.</li></ul>
+<ul><li>Agent can view uploaded proof.</li></ul>
+<p></p>
+<h2>Tester Notes</h2>
+<ul><li>Test QR only flow if available.</li></ul>
+<ul><li>Test bank details only flow if available.</li></ul>
+<ul><li>Check if wrong user gets wrong payment config.</li></ul>
+<p></p>
+<h2>Screenshots to Add</h2>
+<ul><li>Global payment config screen</li></ul>
+<ul><li>User 1 payment page</li></ul>
+<ul><li>User 1 payment proof uploaded</li></ul>
+<ul><li>User-specific payment config for User 2</li></ul>
+<ul><li>User 2 payment page showing override</li></ul>
+<ul><li>Agent side payment proof view</li></ul>
+<p></p>
+<div class="placeholder">[PASTE SCREENSHOTS FOR TEST CASE 3 HERE]</div>
+<p></p>
+<div class="rule"></div>
+<p></p>
+<h1>Test Case 4 - Agreement Flow</h1>
+<p></p>
+<h2>Goal</h2>
+<p>Check full agreement flow very deeply because this is very important.</p>
+<p></p>
+<h2>Pages</h2>
+<ul><li>agent agreements area</li></ul>
+<ul><li>user agreement page</li></ul>
+<ul><li>agent agreement document view</li></ul>
+<p></p>
+<h2>Steps</h2>
+<p>1. Login as agent.</p>
+<p>2. Unlock agreement section for User 1 and User 2 after payment.</p>
+<p>3. Send support chat message to user: `Now fill the agreement.`</p>
+<p>4. Login as User 1.</p>
+<p>5. Open agreement page.</p>
+<p>6. Read the agreement screen.</p>
+<p>7. Try to submit without checkbox or signature and check validation.</p>
+<p>8. Tick checkbox.</p>
+<p>9. Add digital signature.</p>
+<p>10. Check signature preview before final submit.</p>
+<p>11. Submit signature.</p>
+<p>12. Record or upload consent video.</p>
+<p>13. Final submit agreement.</p>
+<p>14. After submit, check that the final agreement document page is visible.</p>
+<p>15. Check that signature is visible.</p>
+<p>16. Check that consent video is visible.</p>
+<p>17. Check Aadhaar, PAN, live photo, contact details, email, IP address, and other agreement details.</p>
+<p>18. Login as agent.</p>
+<p>19. Open same user agreement document view.</p>
+<p>20. Check that agent can see all the same details.</p>
+<p>21. If PDF download option is available, test it.</p>
+<p>22. Repeat key agreement flow for User 2 also.</p>
+<p></p>
+<h2>Expected Result</h2>
+<ul><li>Agreement validation works.</li></ul>
+<ul><li>Signature preview works.</li></ul>
+<ul><li>Consent video upload works.</li></ul>
+<ul><li>Final agreement document is visible on user side.</li></ul>
+<ul><li>Final agreement document is visible on agent side.</li></ul>
+<ul><li>Signature must be visible clearly. This is critical.</li></ul>
+<p></p>
+<h2>Tester Notes</h2>
+<ul><li>Test on desktop and mobile.</li></ul>
+<ul><li>Check if any media card is blank.</li></ul>
+<ul><li>Check if signature is cut, cropped, or missing.</li></ul>
+<ul><li>Check if consent video opens and plays.</li></ul>
+<p></p>
+<h2>Screenshots to Add</h2>
+<ul><li>Agreement form before submit</li></ul>
+<ul><li>Validation message example</li></ul>
+<ul><li>Signature preview</li></ul>
+<ul><li>Consent video screen</li></ul>
+<ul><li>Final agreement document on user side</li></ul>
+<ul><li>Final agreement document on agent side</li></ul>
+<ul><li>Signature visible screenshot</li></ul>
+<p></p>
+<div class="placeholder">[PASTE SCREENSHOTS FOR TEST CASE 4 HERE]</div>
+<p></p>
+<div class="rule"></div>
+<p></p>
+<h1>Test Case 5 - Community Chat and Private Chat</h1>
+<p></p>
+<h2>Goal</h2>
+<p>Check public community chat and private community chat with 2 users.</p>
+<p></p>
+<h2>Pages</h2>
+<ul><li>user community chat</li></ul>
+<ul><li>user private community PMs</li></ul>
+<ul><li>agent community chat</li></ul>
+<ul><li>agent ghost chat/private chat</li></ul>
+<p></p>
+<h2>Steps</h2>
+<p>1. Login as User 1.</p>
+<p>2. Open community chat.</p>
+<p>3. Send one public message.</p>
+<p>4. Login as User 2.</p>
+<p>5. Open community chat.</p>
+<p>6. Send one public message.</p>
+<p>7. Check if public messages appear correctly.</p>
+<p>8. Login as agent.</p>
+<p>9. Open community chat.</p>
+<p>10. Reply through ghost identity if required.</p>
+<p>11. Check reply visibility.</p>
+<p>12. From community area, open private chat if available.</p>
+<p>13. Send a private message flow and test from both sides.</p>
+<p>14. Check unread count, order, and visibility.</p>
+<p></p>
+<h2>Expected Result</h2>
+<ul><li>Public messages appear in correct order.</li></ul>
+<ul><li>Private chat works separately.</li></ul>
+<ul><li>Messages are visible clearly.</li></ul>
+<ul><li>No overlapping text or hidden media.</li></ul>
+<p></p>
+<h2>Tester Notes</h2>
+<ul><li>Report if one user can wrongly see another private message.</li></ul>
+<ul><li>Report if visibility rules are wrong.</li></ul>
+<ul><li>Report if reply buttons are missing or confusing.</li></ul>
+<p></p>
+<h2>Screenshots to Add</h2>
+<ul><li>User 1 community chat</li></ul>
+<ul><li>User 2 community chat</li></ul>
+<ul><li>Agent community reply</li></ul>
+<ul><li>Private chat example</li></ul>
+<p></p>
+<div class="placeholder">[PASTE SCREENSHOTS FOR TEST CASE 5 HERE]</div>
+<p></p>
+<div class="rule"></div>
+<p></p>
+<h1>Test Case 6 - Config and Management Pages</h1>
+<p></p>
+<h2>Goal</h2>
+<p>Check all important agent config pages and management tools.</p>
+<p></p>
+<h2>Items to Test</h2>
+<ul><li>UI Locker</li></ul>
+<ul><li>Stock Management</li></ul>
+<ul><li>Server Busy Status</li></ul>
+<ul><li>Chat Delete for Everyone</li></ul>
+<ul><li>Stock Update</li></ul>
+<ul><li>Testimonial Video Management</li></ul>
+<ul><li>Hero On/Off</li></ul>
+<ul><li>Sound On/Off</li></ul>
+<ul><li>Announcements</li></ul>
+<ul><li>Payment Templates</li></ul>
+<ul><li>Community Visibility</li></ul>
+<p></p>
+<h2>Steps</h2>
+<p>1. Login as agent.</p>
+<p>2. Open UI Config page.</p>
+<p>3. Lock one section for one user and check user side blur + lock.</p>
+<p>4. Turn on Server Busy for one user and check login block.</p>
+<p>5. Open stock management.</p>
+<p>6. Add stock, edit stock, update stock, delete stock if allowed.</p>
+<p>7. Open testimonial management.</p>
+<p>8. Upload one video if needed.</p>
+<p>9. Check hero on/off toggle.</p>
+<p>10. Check sound on/off toggle.</p>
+<p>11. Open announcements page.</p>
+<p>12. Create, edit, and delete one test announcement.</p>
+<p>13. Open payment templates and check create/edit behavior.</p>
+<p>14. Open community visibility page and change visibility for one user.</p>
+<p>15. Open a chat and test delete for everyone if available.</p>
+<p></p>
+<h2>Expected Result</h2>
+<ul><li>Each config page works from UI.</li></ul>
+<ul><li>User side effect is visible where needed.</li></ul>
+<ul><li>No broken button, no hidden save issue, no wrong page refresh.</li></ul>
+<p></p>
+<h2>Tester Notes</h2>
+<ul><li>Focus on mobile usability too.</li></ul>
+<ul><li>Check if buttons overlap.</li></ul>
+<ul><li>Check if saved data really reflects on related user pages.</li></ul>
+<p></p>
+<h2>Screenshots to Add</h2>
+<ul><li>UI Config page</li></ul>
+<ul><li>Server Busy example</li></ul>
+<ul><li>Stock management page</li></ul>
+<ul><li>Testimonial management page</li></ul>
+<ul><li>Announcement page</li></ul>
+<ul><li>Payment template page</li></ul>
+<ul><li>Community visibility page</li></ul>
+<p></p>
+<div class="placeholder">[PASTE SCREENSHOTS FOR TEST CASE 6 HERE]</div>
+<p></p>
+<div class="rule"></div>
+<p></p>
+<h1>Test Case 7 - Security Testing From UI Level</h1>
+<p></p>
+<h2>Goal</h2>
+<p>Check basic visible security controls from UI level.</p>
+<p></p>
+<h2>Important</h2>
+<p>This is manual UI testing only.</p>
+<p>Do not use hacker tools.</p>
+<p>Just test normal user actions.</p>
+<p></p>
+<h2>Items to Check</h2>
+<ul><li>Right click disabled or not</li></ul>
+<ul><li>Inspect shortcut blocked or not</li></ul>
+<ul><li>View source shortcut blocked or not</li></ul>
+<ul><li>Testimonial video easy download possible or not</li></ul>
+<ul><li>Raw media file path visible or not in normal UI</li></ul>
+<p></p>
+<h2>Steps</h2>
+<p>1. Open user side pages.</p>
+<p>2. Try right click.</p>
+<p>3. Try common inspect shortcuts.</p>
+<p>4. Open testimonials page.</p>
+<p>5. Try easy video download from normal controls.</p>
+<p>6. Check if raw backend media path is openly shown in normal UI.</p>
+<p>7. Repeat on agent side if needed.</p>
+<p></p>
+<h2>Expected Result</h2>
+<ul><li>Security restrictions should work as designed.</li></ul>
+<ul><li>Testimonial videos should not have easy normal download path from UI controls.</li></ul>
+<ul><li>Source-view shortcuts should be blocked if that feature is active.</li></ul>
+<p></p>
+<h2>Tester Notes</h2>
+<ul><li>If anything is visible, write exact page and exact method.</li></ul>
+<ul><li>Add screenshot if possible.</li></ul>
+<p></p>
+<h2>Screenshots to Add</h2>
+<ul><li>Right click blocked example</li></ul>
+<ul><li>Shortcut blocked example</li></ul>
+<ul><li>Testimonial video control example</li></ul>
+<ul><li>Any visible raw path example</li></ul>
+<p></p>
+<div class="placeholder">[PASTE SCREENSHOTS FOR TEST CASE 7 HERE]</div>
+<p></p>
+<div class="rule"></div>
+<p></p>
+<h1>Final Tester Summary</h1>
+<p></p>
+<p>After all 7 test cases, add this summary:</p>
+<p></p>
+<ul><li>Total test cases run:</li></ul>
+<ul><li>Passed:</li></ul>
+<ul><li>Failed:</li></ul>
+<ul><li>Need retest:</li></ul>
+<ul><li>Biggest bug found:</li></ul>
+<ul><li>Pages that felt confusing:</li></ul>
+<ul><li>Mobile issues found:</li></ul>
+<ul><li>Desktop issues found:</li></ul>
+<ul><li>Final recommendation:</li></ul>
+<p></p>
+<div class="placeholder">[WRITE FINAL SUMMARY HERE]</div>
+</body></html>

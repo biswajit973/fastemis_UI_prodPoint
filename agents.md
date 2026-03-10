@@ -1,0 +1,1579 @@
+# agents.md
+
+## Frontend Updates
+- Latest (Testimonial system switched to backend-folder source of truth):
+  - removed the active agent-side testimonial management flow from the UX:
+    - `/agent/videos` now redirects back to `/agent`
+    - agent home/nav no longer exposes `Testimonials Videos`
+  - public testimonial rendering is no longer DB-driven.
+  - new source of truth is the backend media folder:
+    - `backend/fastEMIsBackend/fastEMIsBackend/media/testimonial_videos`
+  - behavior:
+    - whatever video files are placed in that folder now appear automatically on both:
+      - home hero story player
+      - `/testimonials-all`
+    - videos render with their own native audio only
+    - old admin `sound on/off` management is no longer part of the live flow
+    - title/comment overlays are hidden when no metadata is present
+  - backend changes:
+    - `build_public_video_manifest()` now scans `media/testimonial_videos` directly
+    - `TestimonialVideoAsset` DB rows are no longer used for public testimonial rendering
+    - public manifest cache TTL reduced to `15s` so manual file drops show up quickly after refresh
+  - cleanup performed:
+    - cleared testimonial DB rows
+    - cleared old backend testimonial assets from `media/video`
+    - copied current backup videos from `video_backup_march` into `media/testimonial_videos`
+- Latest (Agent testimonial preview made stable):
+  - fixed agent-side testimonial preview rendering so `/agent/videos` no longer depends on short-lived public signed preview URLs.
+  - updated backend payload builder:
+    - `backend/fastEMIsBackend/fastEMIsBackend/myapp/views.py`
+  - added stable authenticated agent media endpoints:
+    - `GET /api/agent/videos/:id/preview`
+    - `GET /api/agent/videos/:id/poster`
+  - updated agent video API payloads to use those endpoints for `preview_url` and `poster_url`.
+  - result:
+    - uploaded testimonial videos now render reliably in the agent management screen
+    - agent page is no longer vulnerable to expired public video tokens during long sessions
+    - manual file drops into `media/video` alone still do not appear unless there is a matching `TestimonialVideoAsset` DB row
+- Latest (Numerical testimonial video loading indicator):
+  - customer-facing testimonial videos now show a real numeric `1%` to `100%` loading indicator while buffering from storage.
+  - updated:
+    - `src/app/features/home/sections/hero/hero.component.ts`
+    - `src/app/features/testimonials-all/testimonials-all.component.ts`
+  - changes:
+    - hero story player now tracks active video buffering progress and shows a centered percent loader before first frame
+    - hero top loader bar now reflects actual video load progress instead of a decorative slide-position bar
+    - testimonial cards now show per-video numeric loading overlays while each card video buffers
+    - progress is driven by video buffered ranges and ready-state fallbacks, then locked to `100%` once the first frame is ready
+- Latest (Testimonial default reseed removed + video DB cleared):
+  - removed hardcoded default testimonial reseeding from:
+    - `backend/fastEMIsBackend/fastEMIsBackend/myapp/views.py`
+  - `PUBLIC_VIDEO_CATALOG` is now empty, so testimonial rows are no longer silently recreated from code.
+  - cleared `TestimonialVideoAsset` DB rows for a clean video inventory reset.
+  - result:
+    - testimonial video DB count is now `0`
+    - public video manifest returns `0` items until new videos are uploaded again from agent side
+    - existing backup folder remains available for manual review and re-import reference
+- Latest (Agreement digital signature preview/save visibility fix):
+  - fixed signed agreement evidence rendering so the saved signature now displays correctly on both user and agent agreement document views.
+  - updated shared renderer:
+    - `src/app/features/agreement/components/agreement-document-view.component.ts`
+  - changes:
+    - digital signature, Aadhaar, PAN, and other document-style evidence now render with `object-contain` instead of photo-style cropping
+    - image preview modal now uses a light surface for document/signature images instead of a dark media surface
+    - added media load-failure fallback state so broken image previews show a clear message instead of a blank block
+    - print/download PDF evidence rendering now uses contain-mode for document images too
+  - updated agreement signature capture/export:
+    - `src/app/features/agreement/agreement.component.ts`
+  - changes:
+    - signature export now trims empty transparent canvas space before saving/previewing
+    - restored signature preview now redraws proportionally inside the signature canvas after resize/orientation changes instead of stretching incorrectly
+  - result:
+    - existing saved wide transparent signature PNGs now preview properly
+    - new signatures save in a tighter, cleaner format for both mobile and desktop agreement records
+- Latest (User chat layout overlap + media visibility fix):
+  - fixed customer support chat and private PM screens where the bottom input/composer could visually overlap the last message or uploaded media.
+  - updated:
+    - `src/app/features/dashboard/components/support-chat/support-chat.component.ts`
+    - `src/app/features/messages/messages.component.ts`
+  - changes:
+    - viewport-locked chat shell (`h-[100dvh]` + overflow-hidden) so only the message area scrolls
+    - larger bottom padding in message scroll area so the final message/file stays fully visible above the composer
+    - removed sticky footer overlay behavior by anchoring composer as a normal bottom section inside the fixed-height chat layout
+    - image/video attachments now use `object-contain` instead of cropping content
+    - long message text and attachment names now wrap instead of truncating/cropping
+- Latest (User-specific payment override now backend-backed):
+  - fixed the real root cause where `/agent/payments?tab=user` created user-specific payment sets only in frontend runtime state.
+  - added backend `UserPaymentConfig` persistence and agent APIs:
+    - `GET/POST /api/agent/payments/user`
+    - `PATCH/DELETE /api/agent/payments/user/:id`
+  - updated active user payment resolution:
+    - `/api/payments/global/active` now first checks active user-specific payment config for the logged-in user.
+    - if found, user-specific config overrides global config.
+    - if not found, existing global fallback behavior remains unchanged.
+  - updated agent payments user tab:
+    - user-specific create/toggle/delete now use backend APIs instead of local-only state
+    - selected user now reloads real backend override rows
+    - QR upload now sends the actual file, not only local preview data
+  - result:
+    - user-specific payment config now properly reflects on the customer `Send Payments` page and overrides global config during its active window.
+- Latest (User-specific payment override validation fix):
+  - fixed `/agent/payments?tab=user` so user-specific payment sets now follow the same rule as global payment config:
+    - QR only
+    - bank details only
+    - or both
+  - removed the old blocking alert path that incorrectly required both QR and full bank input together.
+  - added inline validation/success messaging for user override creation.
+  - updated helper copy so the UI clearly states QR and bank are both optional individually, but at least one payment method is required.
+- Latest (Global inspect/right-click block re-enabled):
+  - local environment inspect blocking is now back on:
+    - `src/environments/environment.ts` -> `disableInspect: true`
+  - global security component now blocks:
+    - right click / context menu
+    - `F12`
+    - `Ctrl/Cmd + Shift/Option + I`
+    - `Ctrl/Cmd + Shift/Option + J`
+    - `Ctrl/Cmd + Shift/Option + C`
+    - `Ctrl/Cmd + Shift/Option + K`
+    - `Ctrl/Cmd + U`
+  - blocked inspect/source actions now show a rate-limited warning toast instead of failing silently.
+- Latest (Testimonial video path + code hardening):
+  - hardened public testimonial playback to stop exposing raw storage filenames in frontend/API responses.
+  - public video manifest now emits signed slug-based playback URLs:
+    - `/api/public/video-stream/:videoId?...`
+    - `/api/public/video-poster/:videoId?...`
+  - legacy raw `/media/video/<filename>` access is now blocked by app route handling for testimonial assets.
+  - agent video payload no longer exposes raw uploaded video URL or source filename to the frontend.
+  - frontend fallback manifest no longer leaks raw `.mp4`/poster filenames.
+  - added browser-level testimonial download deterrents:
+    - `controlsList="nodownload noplaybackrate noremoteplayback"` on agent preview players
+    - `disablePictureInPicture`
+    - `disableRemotePlayback`
+    - right-click/context-menu suppression on testimonial video surfaces
+  - production build hardening:
+    - Angular production source maps disabled
+    - Angular subresource integrity enabled
+  - backend response hardening:
+    - `X-Content-Type-Options: nosniff`
+    - strict referrer policy
+    - frame deny
+    - same-origin opener/resource policies via custom middleware
+- Latest (Per-user community visibility control for agent side):
+  - added new agent control page:
+    - route: `/agent/community-visibility`
+    - component: `src/app/features/agent/components/agent-community-visibility/agent-community-visibility.component.ts`
+  - added quick-link entry inside `/agent/chats-home` so agents can open this control from the chat workspace.
+  - fixed backend `/api/agent/users` crash caused by combining reverse `select_related('community_visibility_config')` with deferred field loading.
+  - page now renders as an all-users management list:
+    - desktop table view
+    - mobile card view
+    - one on/off visibility toggle per user row
+  - agent can now choose visibility mode for one real user at a time:
+    - `Visible to all users`
+    - `Only user + agents`
+  - when a user is set to `Only user + agents`:
+    - that same user still sees their own community posts
+    - agents and ghost-side tools still see those posts
+    - other real signed-up users do not receive or render those posts in community feed
+  - enforcement is backend-side in community feed queries, not cosmetic frontend hiding only.
+  - new frontend support files:
+    - `src/app/core/models/community-visibility.model.ts`
+    - `src/app/core/services/community-visibility-api.service.ts`
+  - new backend model:
+    - `UserCommunityVisibilityConfig`
+  - new backend API:
+    - `GET/PATCH /api/agent/community-visibility/users/:userId`
+- Latest (User private chats rebuilt for native mobile chat feel):
+  - redesigned `/dashboard/messages` for a denser iOS-style private PM experience without changing ghost-chat backend behavior.
+  - upgraded the screen with:
+    - safer sticky glass header + composer
+    - mobile thread picker sheet instead of the old cramped list behavior
+    - date dividers (`Today`, `Yesterday`, etc.)
+    - improved message bubble hierarchy and timestamps
+    - shared media gallery surface with better spacing and preview
+    - floating `jump to latest` action when user scrolls away from bottom
+  - fixed the old auto-scroll issue:
+    - page no longer snaps to bottom on every render
+    - it only auto-scrolls when already near bottom, on send, or on explicit forced refresh
+  - thread selection now syncs the `?thread=` query param more cleanly when the user switches conversations.
+  - follow-up cleanup for customer-facing simplicity:
+    - removed user-visible internal labels like `Locked Persona`
+    - removed the `Persona locked to this conversation` banner
+    - removed zero-state media count pills
+    - replaced the `Threads` text button with a simple icon trigger on mobile
+- Latest (Agent User UI Config + per-user server busy controls):
+  - added new agent management page:
+    - route: `/agent/ui-config`
+    - component: `src/app/features/agent/components/agent-user-ui-config/agent-user-ui-config.component.ts`
+  - page is split into two sections:
+    - `Global Config`
+    - `User Specific`
+  - agent can now control user-facing section locks for:
+    - `Chat Support`
+    - `Agreements`
+    - `Group Chat`
+    - `Private Chat`
+  - all UI locks default to `unlocked`.
+  - locked sections do not disappear from the customer UI:
+    - they remain visible
+    - they render blurred with lock badges
+    - click/tap is blocked with redirect back to dashboard and warning feedback
+  - agreements lock is additive with the older agreement visibility setting:
+    - even if the existing agreement visibility is on, the new UI-config lock still keeps the section blurred and blocked.
+  - added global and per-user `Server Busy` controls:
+    - global `server down` blocks login for all users
+    - per-user `server down` blocks login only for the selected user
+    - blocked users receive:
+      - `Server busy. Please wait and try again.`
+  - effective UI config is now included in user auth/profile payloads as `ui_config`.
+  - new frontend support files:
+    - `src/app/core/models/user-ui-config.model.ts`
+    - `src/app/core/services/user-ui-config-api.service.ts`
+    - `src/app/core/guards/user-server-availability.guard.ts`
+    - `src/app/core/guards/user-ui-feature.guard.ts`
+  - new backend models:
+    - `UserUiGlobalConfig`
+    - `UserUiUserConfig`
+  - new backend APIs:
+    - `GET/PATCH /api/agent/ui-config/global`
+    - `GET/PATCH /api/agent/ui-config/users/:userId`
+- Latest (Reset control moved off floating overlay):
+  - removed the global floating recycle-bin / clear-cache icon from the app shell.
+  - reset logic now lives in a shared service:
+    - `src/app/core/services/browser-reset.service.ts`
+  - added normal inline reset sections instead of overlay controls on:
+    - user home: `/dashboard`
+    - agent home: `/agent`
+  - result:
+    - no floating icon blocking taps or overlapping content
+    - reset action is still available for testing
+    - placement is now deliberate and non-intrusive
+- Latest (Support chat UX rebuilt for agent + customer mobile surfaces):
+  - redesigned agent support chat workspace (`/agent/support-chats/:userId`) and customer support chat (`/dashboard/support`) to feel like a cleaner native mobile chat app.
+  - upgraded both chat surfaces with:
+    - denser iOS-style glass headers
+    - improved message bubble spacing and typography
+    - date dividers (`Today`, `Yesterday`, etc.)
+    - media gallery surface with better preview cards
+    - safer sticky composer with better safe-area handling
+    - floating `jump to latest` button when user scrolls away from bottom
+  - fixed the old auto-scroll behavior that kept forcing the list to bottom on every render:
+    - chat now only auto-sticks when already near bottom or when sending/refreshing intentionally
+    - manual scrolling up is preserved
+  - agent support wrapper page now uses more of the screen width and less wasted container padding.
+  - files:
+    - `src/app/features/agent/components/agent-chat/agent-chat.component.ts`
+    - `src/app/features/dashboard/components/support-chat/support-chat.component.ts`
+    - `src/app/features/agent/components/agent-support-chat-page/agent-support-chat-page.component.ts`
+- Latest (Agent home surfaces decluttered):
+  - removed the large hero summary/stat blocks from:
+    - `/agent`
+    - `/agent/chats-home`
+    - `/agent/payments`
+  - these pages now behave as pure quick-action home surfaces instead of showing overview analytics cards.
+  - `Payment Home` action cards also no longer show count badges/metrics.
+  - result:
+    - less wasted vertical space on mobile
+    - faster access to real tools
+    - cleaner iOS-style agent UX
+- Latest (Agent footer IA rebuilt around home surfaces):
+  - shared mobile agent bottom bar now uses 4 grouped destinations instead of raw mixed tools:
+    - `Home`
+    - `Chats Home`
+    - `Payment Home`
+    - `Agreements Home`
+  - each footer item now stays active across its related inner routes for clearer mobile context:
+    - `Home` covers `/agent`, applicants, and application detail pages
+    - `Chats Home` covers support chats, ghost chat, community, announcements, and ghost setup
+    - `Payment Home` covers `/agent/payments`
+    - `Agreements Home` covers `/agent/agreements`
+  - added new dedicated agent route:
+    - `/agent/chats-home`
+    - component: `src/app/features/agent/agent-chats-home.component.ts`
+  - `/agent/payments` is now a true `Payment Home`:
+    - no `tab` query param shows a quick-action home surface
+    - each payment workspace opens as an inner focused view from that home
+  - updated agent home/applicants quick actions and quick-link metadata to use the new home terminology:
+    - `Chats Home`
+    - `Payment Home`
+    - `Agreements Home`
+  - shared floating quick-links widget is hidden on the new agent home-style routes:
+    - `/agent`
+    - `/agent/applicants`
+    - `/agent/chats-home`
+    - `/agent/payments`
+    - `/agent/agreements`
+- Latest (Agent payments page mobile UX overhaul):
+  - rebuilt `/agent/payments` top shell into a cleaner iOS-style surface with:
+    - premium summary hero
+    - segmented tab control
+    - softer rounded content cards
+  - replaced the raw native `Target User Account` `<select>` in the `User Override` tab with a custom searchable picker sheet/modal.
+    - this avoids the broken mobile select overlay behavior seen in device mode.
+    - agents now pick target users through a consistent custom control on both mobile and desktop.
+  - added mobile-first card layouts for data-heavy tabs that previously relied on wide tables:
+    - active global sets
+    - transaction logs
+    - user-specific sets
+    - display logs
+  - desktop table layouts remain intact for larger screens.
+  - user-specific override form now uses clearer grouped fields and more polished spacing for better agent readability during payment setup.
+- Latest (Agent mobile quick footer bar):
+  - added a shared mobile-only quick footer bar for all agent routes through the agent layout.
+  - new component:
+    - `src/app/features/agent/components/agent-bottom-bar/agent-bottom-bar.component.ts`
+  - footer bar is fixed and gives fast icon-based access to:
+    - `Home`
+    - `Applicants`
+    - `Support`
+    - `Alerts`
+    - `Pay`
+  - layout updated so all agent pages keep enough bottom padding and do not get covered by the new footer bar on phones.
+  - visual style matches the existing iOS-like glass surface treatment used in the newer customer and agent mobile UI.
+- Latest (Agent home + applicants split):
+  - `/agent` is now a real agent home page instead of doubling as the applicants queue.
+  - added new component:
+    - `src/app/features/agent/agent-home.component.ts`
+  - agent home now acts as the post-login landing surface with:
+    - operations summary cards
+    - full quick menu grid
+    - applicants queue preview
+    - fast links into support, moderation, payments, agreements, videos, and stocks
+  - `/agent/applicants` remains the full applicants queue page.
+  - agent sign-in continues to navigate to `/agent`, which now correctly means `Agent Home`.
+  - updated agent nav IA:
+    - separate `Home` and `Applicants` items
+    - agent dashboard quick menu now includes `Agent Home` instead of linking to itself
+  - updated agent application details page:
+    - `Back to Applicants` now returns to `/agent/applicants`
+    - post-delete navigation also returns to `/agent/applicants`
+- Latest (Agent dashboard iOS-style shell refresh):
+  - rebuilt `/agent` home into a denser mobile-first operations surface with:
+    - premium summary hero
+    - compact quick menu tiles for core agent routes
+    - softened stat cards
+    - cleaner recent-applicants list cards
+  - agent mobile/desktop top nav refined:
+    - brand now uses a more polished FastEMIs Partners lockup
+    - mobile menu and profile trigger use compact glass/pill styling
+    - menu drawer cards now feel consistent with the rest of the agent UI
+  - agent layout outer spacing reduced so mobile screens feel less boxed-in.
+  - shared breadcrumbs quick-links widget is now hidden on `/agent` root to avoid the floating overlay pill over the new dashboard surface.
+- Latest (Dedicated applicants alias without breaking agent landing):
+  - added `/agent/applicants` route as a safe alias to the same applicants dashboard component used on `/agent`.
+  - kept `/agent` fully working as the existing post-login landing page.
+  - updated obvious agent navigation surfaces to point to `/agent/applicants` for clearer IA:
+    - agent top nav label now reads `Applicants`
+    - mobile agent menu uses `Applicants`
+    - agent dashboard quick menu uses `Applicants`
+    - agent quick-links widget target for applicants now uses `/agent/applicants`
+  - result:
+    - dedicated applicants page URL exists
+    - no route removals
+    - no login-flow breakage
+- Latest (Dashboard agreement completion tick):
+  - agreements quick-link on `/dashboard` now shows a small green completion tick when the user has already finished the agreement flow.
+  - dashboard now refreshes backend user profile once on load so `agreement_completed_at` is reflected immediately in the home card state.
+- Latest (Customer dashboard compact density pass):
+  - reduced mobile default sizes on `/dashboard` for a less bulky app feel.
+  - tightened:
+    - top header icon/avatar sizing
+    - hero card padding and headline size
+    - quick-link and community card heights
+    - icon container sizes
+    - label and button text sizing
+    - announcement card spacing and CTA height
+  - shadows and radii were softened slightly so the page feels cleaner and less oversized on narrow screens.
+- Latest (Customer dashboard announcement card auto-resize):
+  - removed fixed viewport-based heights from the `/dashboard` announcement section.
+  - important announcement card now grows only to match its text content instead of forcing a large empty board.
+  - action row now stacks cleanly on narrow screens and stays inline on larger screens.
+  - result:
+    - less empty space for short messages
+    - cleaner native-app feel on mobile
+    - better CTA/date alignment
+- Latest (Agent announcements page UX rebuild):
+  - rebuilt `/agent/announcements` list UI to remove overlapping action buttons.
+  - replaced the previous absolute-positioned edit/delete controls with dedicated action columns inside each announcement card.
+  - page now uses larger rounded glass-style surfaces, cleaner spacing, and mobile-safe stacking for:
+    - header controls
+    - live counters
+    - create/edit form
+    - active announcement cards
+  - private target user info is now shown as a normal inline badge inside the card instead of competing with overlay actions.
+  - result:
+    - no button overlap
+    - cleaner iOS-style feel
+    - easier touch interaction on mobile and tablet
+- Latest (Agreement execution metadata backfill + user login home redirect):
+  - fixed user sign-in flow so completed-profile users now always land on `/dashboard` after login.
+  - stale `redirect=/dashboard/agreement` query params are no longer honored by the normal user login page.
+  - agreement document flow now self-heals legacy signed records that were missing execution metadata:
+    - frontend detects `Not captured` execution fields in signed agreement document payload
+    - frontend calls new backend sync endpoint:
+      - `/api/agreements/document/sync-execution`
+    - backend creates or patches `AgreementExecutionRecord` only when the record is missing or incomplete
+    - browser values come from Angular/JS (`userAgent`, browser name/version, OS, language, timezone)
+    - IP address is captured server-side from Django request metadata
+    - legacy signed agreements keep their original `agreement_completed_at` as the execution timestamp when backfilled
+  - signed agreement page now hydrates its local execution metadata display from the finalized document payload after sync.
+- Latest (Single agreement flow + signed document view):
+  - removed old customer-facing agreement branching from `/dashboard/agreement`:
+    - no `Legacy Flow`
+    - no `Agreement 2`
+  - customer agreement page is now one fixed flow:
+    - read all 28 clauses in one continuous list
+    - check one final consent checkbox
+    - add digital signature
+    - open consent-video sheet
+    - record/upload short consent video
+    - final submit
+  - consent video script shortened:
+    - removed downpayment / non-refundable line from the spoken script
+    - keeps only identity, agreement ID, date, clause understanding, document genuineness, and voluntary consent
+  - added reusable signed-agreement document viewer:
+    - `src/app/features/agreement/components/agreement-document-view.component.ts`
+    - renders:
+      - agreement/session metadata
+      - customer snapshot
+      - execution/browser/IP evidence
+      - uploaded live photo / Aadhaar / PAN / signature / consent video
+      - all 28 accepted clauses
+  - user `/dashboard/agreement` now shows the signed document view after completion instead of the form.
+  - agent user details page now includes `Agreement Document` tab using the same shared renderer.
+  - agent agreement document tab includes `Download PDF` action:
+    - browser print-to-PDF flow from a dedicated print layout
+  - agent `/agent/agreements` simplified:
+    - fixed single-agreement model messaging
+    - per-user agreement tab enable/disable
+    - reset signed agreement execution
+  - agent navbar agreement menu simplified to `Agreement Control`.
+- Latest (Agreement execution backend record):
+  - added persistent backend agreement execution model:
+    - `AgreementExecutionRecord`
+  - new migration:
+    - `backend/fastEMIsBackend/fastEMIsBackend/myapp/migrations/0019_agreementexecutionrecord.py`
+  - stores:
+    - agreement ID
+    - session ID
+    - executed timestamp
+    - IP address
+    - browser/user-agent metadata
+    - signed document snapshot JSON
+    - document hash
+  - new backend document endpoints:
+    - user: `/api/agreements/document`
+    - agent: `/api/agent/users/:id/agreement-document`
+  - agreement completion endpoint now writes execution snapshot + hash and returns final document payload.
+- Latest (Agreement consent-video modal rebuilt as mobile-first sheet):
+  - extracted the Agreement V1 consent-video step into a separate standalone component:
+    - `src/app/features/agreement/components/agreement-consent-video-modal.component.ts`
+  - replaced the old centered modal with a full-screen mobile sheet and desktop dialog hybrid:
+    - full-height iOS-style sheet on phones
+    - rounded dialog on larger screens
+  - polished the capture sheet to feel closer to a mobile app surface:
+    - drag-handle top affordance on mobile
+    - softer layered background and white glass header/footer
+    - 3-step status chips (`Open`, `Record`, `Submit`)
+    - larger, cleaner action buttons with consistent touch targets
+    - dedicated framed cards for live camera and saved preview
+  - mobile scroll behavior was hardened:
+    - dedicated internal scroll region with touch scrolling
+    - sticky header/footer actions
+    - no clipped recording controls on small screens
+  - preview flow was improved:
+    - live camera preview scrolls into view when camera opens
+    - recorded/uploaded video preview scrolls into view after save
+  - all existing actions were preserved:
+    - open camera
+    - start recording
+    - stop and save
+    - retake video
+    - upload from gallery
+    - final agreement submit
+- Latest (Dashboard overlay quick-links widget removed from customer home):
+  - the floating top-right `Quick Links / Dashboard` pill was coming from the global breadcrumbs widget, not from the dashboard page itself.
+  - breadcrumbs widget is now route-aware and hidden on the exact `/dashboard` customer home route.
+  - result:
+    - customer home stays visually clean and matches the new minimal mobile-app layout
+    - breadcrumbs/quick-links remain available on other pages where they are still useful
+- Latest (Inspect/devtools temporarily enabled for testing):
+  - local frontend environment now has `disableInspect: false` so browser inspection works during testing.
+  - `ScreenshotBlockDirective` now respects the same environment flag instead of always blocking right-click/printscreen behavior.
+  - result:
+    - global inspect/right-click shortcuts are enabled in local testing
+    - agreement page screenshot-block behavior is also disabled while the flag is off
+  - later rollback path is simple:
+    - set `disableInspect` back to `true` in `src/environments/environment.ts`
+- Latest (Customer dashboard refined to minimal app-home proportions):
+  - rebuilt `/dashboard` into a cleaner mobile-app style home using FastEMIs navy/white surfaces only.
+  - header row is now minimal:
+    - homepage-style FastEMIs logo treatment
+    - profile avatar only
+    - no extra dashboard subtitle/chrome
+  - profile popup remains minimal with only:
+    - `My Profile Details`
+    - `Log Out`
+  - mobile layout was tightened around the requested proportions:
+    - logo/profile row uses roughly `10%` of screen height
+    - welcome card uses roughly `10%`
+    - quick links block uses roughly `15%`
+    - community chats block uses roughly `15%`
+    - important announcement block expands to take the majority remaining height (`50%` style emphasis)
+  - section chrome was simplified:
+    - removed bulky inner header bars
+    - smaller icons
+    - cleaner shadows and spacing
+  - typography was tuned for app-home feel:
+    - headlines capped around `28-30px`
+    - body/announcement text moved into `16-19px` range
+    - UI captions/titles moved into `14-15px` range
+  - landing page still keeps only the essential reference-style blocks:
+    - greeting hero
+    - `Chat Support`, `Agreements`, `Pay Now`
+    - `FastEMI Group Chat`, `Chat With Community Members`
+    - one main important announcement area
+  - announcement CTA routing on dashboard remains corrected:
+    - support/document-style CTAs open `/dashboard/support`.
+- Latest (Complete profile gate UX + locked dashboard sections):
+  - redesigned `/dashboard/complete-profile` into a wider mobile-first completion workspace:
+    - full-width layout usage on phone, tablet, laptop, and desktop
+    - left-side guidance/progress cards on large screens, stacked cards on mobile
+    - clearer section grouping for contact, work/device details, identity, and uploads
+  - completion page now shows stronger gating guidance:
+    - alert that support, payments, community, private chats, and agreements stay locked until profile completion
+    - missing-step chips with readable field labels
+    - helper copy for `Requested Amount`, `Live Photo`, and `Spouse Occupation`
+  - `Requested Amount` behavior improved:
+    - if user device code matches stock DB, amount auto-fills from that device price
+    - if device code is manual/not in stock, page tells user to enter the total device price manually
+  - dashboard nav now visually locks user sections while profile is incomplete:
+    - blurred labels + lock icons on protected sidebar/mobile-nav entries
+    - dedicated `Complete Profile` entry is shown as the active allowed section
+    - tapping locked items redirects back to `/dashboard/complete-profile` with warning toast
+- Latest (Signup device code searchable stock dropdown):
+  - replaced plain signup `Device Code` textbox with a searchable stock-backed selection dropdown.
+  - signup page layout was redesigned for better mobile-first UX:
+    - full-width page usage on mobile, laptop, and desktop
+    - removed narrow centered form constraint to avoid wasted screen space
+    - added wider responsive grid layout with compact mobile typography and spacing
+    - form now expands cleanly across larger displays while staying easy to fill on phones
+  - signup page now hides the `Vendor (Agent) Login` entry in its navbar/dropdowns and removes the inline agent login CTA from the form.
+  - signup now loads public inventory from `/api/stocks` and lets users search by:
+    - device code
+    - brand
+    - model
+    - variant
+  - selecting a stock item auto-fills the real 6-digit `deviceCode` form value used for signup submit.
+  - manual fallback is also supported:
+    - if stock search does not contain the device, user can still enter a valid 6-character device code manually
+    - signup accepts that manual code without forcing a stock-list match
+  - selected device summary now shows under the field with quick `Change` action.
+  - validation remains strict:
+    - user must either select a valid stock item or enter a valid 6-character manual code
+    - invalid free-typed values are not submitted
+  - mobile-friendly dropdown shows price, discounted price, stock status, and model details.
+- Latest (Agreement V1 linear legal flow + video modal):
+  - `Agreement 1` now has two user-visible sub-tabs:
+    - `Agreement V1`
+    - `Legacy Flow`
+  - `Agreement V1` is now the primary mobile-first reading/signature flow:
+    - readonly customer identity cards (`User Name`, `Aadhaar Number`, `PAN Number`)
+    - readonly technical evidence cards (`IP Address`, `Final Submission Timestamp`, `Session ID`, `Agreement ID`, browser/device metadata)
+    - agreement master-key explanation cards
+    - dynamic consent-video script block using user name, Aadhaar last 4 digits, current legal date, and generated Agreement ID
+    - all 28 legal clauses rendered in one continuous numbered list (`1` to `28`) instead of section accordions
+  - new V1 consent sequence:
+    - user reads full agreement
+    - checks one master `I agree to all 28 clauses` checkbox
+    - adds digital signature on-page
+    - taps `Submit Signature`
+    - popup modal opens for consent video
+  - new V1 consent video modal supports:
+    - live camera open
+    - start recording
+    - stop and save
+    - retake video
+    - upload video from gallery
+    - final agreement submission from modal after video preview is ready
+  - agreement page generates session-scoped identifiers in frontend:
+    - `Agreement ID` like `FEMI-YYYYMMDD-XXXXX`
+    - separate `Session ID` for execution context
+  - old working inline agreement flow remains available under `Legacy Flow` for fallback and retesting.
+- Latest (Agreement signature upload stability + agent preview fallback):
+  - user agreement signature submit now uploads the saved signature preview image instead of trusting the live canvas state after resize/re-init.
+  - signature canvas now rehydrates the saved preview back into the canvas on resize so users do not lose the actual submitted bitmap.
+  - client-side signature validation now checks that the generated image blob is decodable before upload.
+  - agent application details page now shows a clear fallback message when signature/image preview fails instead of a silent broken image.
+- Latest (Stocks page + Agent Device Stock CRUD):
+  - added new public stocks page:
+    - route: `/stocks`
+    - component: `src/app/features/stocks/stocks.component.ts`
+  - stocks page now reads inventory from backend DB API (`/api/stocks`) instead of local JSON.
+  - user stock cards now show:
+    - original price + discounted price
+    - fixed `18% OFF` label
+    - copy `device_code` button for signup usage
+    - quick sign-up CTA
+  - added agent stock management page:
+    - route: `/agent/stocks`
+    - component: `src/app/features/agent/components/agent-stock-management/agent-stock-management.component.ts`
+  - agent stock module supports full CRUD:
+    - create stock
+    - edit/update stock
+    - delete stock
+    - control active/in-stock states
+    - copy device code directly from inventory list
+  - added new frontend stock integration files:
+    - `src/app/core/models/device-stock.model.ts`
+    - `src/app/core/services/device-stock-api.service.ts`
+  - navigation updates:
+    - public navbar includes `Stocks`
+    - agent navbar includes `Device Stocks`
+    - quick links include stock routes for public and agent
+  - mock passthrough updated for stock endpoints:
+    - `/api/stocks*`
+    - `/api/public/stocks*`
+    - `/api/agent/stocks*`
+  - agent `/agent/stocks` UX upgraded into a mobile-first stock home:
+    - one route, three workspaces: `Stock Home`, `View Stocks`, `Add New Stock`
+    - quick action cards now drive the workflow instead of one long admin page
+    - stock search is now reactive and mobile-friendly
+    - create/update/delete actions update the local list in place without a forced page refresh
+    - inventory cards are denser and easier to scan on small screens
+- Latest (Video loading gate until fallback music is ready):
+  - for videos with `soundEnabled=false`, UI now shows `Loading audio...` overlay until fallback music preload is ready.
+  - Home hero:
+    - loading overlay is shown in story viewport while fallback audio is not ready.
+    - playback waits for music readiness, then auto-attempts play.
+  - Testimonials page:
+    - active card shows inline `Loading audio...` overlay when fallback audio is not ready.
+    - playback waits and auto-resumes once music readiness signal turns true.
+  - this keeps sound-off video behavior deterministic and avoids delayed silent starts.
+- Latest (Backend music cache-first playback for instant toggle):
+  - fallback music source moved from static assets URL to backend endpoint:
+    - `/api/public/fallback-music?v=1`
+  - `DemoMusicService` now performs cache-first preload on page load:
+    - checks Cache Storage (`fastemis-fallback-music-v1`)
+    - if missing, fetches from backend and stores in cache
+    - attaches cached blob URL to audio element for faster first play
+  - sound behavior update:
+    - until preload/readiness completes, fallback sound stays off
+    - once ready, sound toggle plays from cached source with lower startup delay
+  - mock API passthrough updated for:
+    - `/api/public/fallback-music`
+- Latest (Music startup latency reduction for testimonials fallback audio):
+  - `DemoMusicService` now preloads and cache-warms the fallback MP3 on service init.
+  - queued-play logic added so audio starts immediately after readiness/unlock instead of waiting for a fresh load on first click.
+  - added media readiness listeners (`loadeddata`, `canplay`) to trigger pending playback as soon as possible.
+  - added fetch warmup (`force-cache`) to reduce first-toggle delay in dev/mobile browsers.
+- Latest (Real fallback music file wired for muted testimonial videos):
+  - switched demo fallback music engine from synthetic tone to real uploaded audio asset:
+    - `/assets/music/Lampaui - Lelampa.mp3`
+  - `DemoMusicService` now uses a looping `HTMLAudioElement` for consistent playback quality.
+  - autoplay block handling improved:
+    - if browser blocks autoplay audio, service retries on next user gesture (`tap/click/key`).
+  - keeps one active track behavior across hero/testimonials so overlapping audio does not occur.
+- Latest (Per-video sound control + fallback demo music):
+  - agent testimonial video management now includes `Allow Original Sound` at upload time.
+  - each managed video card now shows `Sound: On/Off` badge with dedicated toggle action.
+  - frontend video contracts extended:
+    - `AgentVideoItem.sound_enabled`
+    - `VideoManifestItem.soundEnabled`
+  - Home hero playback behavior:
+    - if video sound is ON: video audio works as before (user can unmute).
+    - if video sound is OFF: original video stays muted and demo background music is used while playing.
+  - Testimonials page playback behavior:
+    - same rule as hero (original audio only when ON; demo music when OFF).
+    - only active playing card can drive demo music; others remain paused/muted.
+  - added shared service:
+    - `src/app/core/services/demo-music.service.ts`
+    - Web Audio based lightweight demo track engine with single-active-track control.
+- Latest (Signup Device Code field added, strict 6-char uppercase):
+  - signup form now includes new mandatory field: `Device Code`.
+  - UI validation enforces exactly 6 uppercase alphanumeric characters (`A-Z`, `0-9`).
+  - input auto-normalizes while typing:
+    - converts to uppercase
+    - strips invalid characters
+    - caps length at 6
+  - signup payload now sends `device_code` to backend through auth service.
+  - signup error handling now surfaces backend `device_code` field errors cleanly.
+- Latest (Home page sales-copy rewrite in simple English):
+  - rewrote major home page text blocks with a clear premium gadget affordability message and stronger conversion tone.
+  - updated hero headline, support paragraph, badge labels, primary CTA text, and rotating typing lines.
+  - eligibility messaging now explicitly shown in hero copy:
+    - no credit card needed
+    - student age 18 plus can apply
+    - low income users can apply
+    - users with 3 or more active loans are not eligible
+    - no cost EMI up to 12 months
+  - updated home approval toast copy to sales-oriented messaging and localized demo names/partner labels.
+  - refreshed copy across:
+    - `stats-bar` section
+    - `how-it-works` section
+    - `partner-grid` heading, filter labels, details labels, CTA
+    - `trust-signals` section
+    - `top-emi-devices` heading, description, chips, card titles
+    - footer brand description
+  - no route, API, or behavior change; copy-only update for home funnel clarity and FOMO-driven action language.
+- Latest (Footer social cleanup):
+  - removed `Twitter` and `LinkedIn` links/icons from home footer bottom bar.
+  - footer now keeps only the copyright line in that section.
+- Latest (Calm typography rollout with requested font stack):
+  - applied new Google Fonts stack globally from `index.html`:
+    - `Tenor Sans`, `Comfortaa`, `Quicksand`, `Gowun Batang`, `Josefin Sans` (+ existing `JetBrains Mono`)
+  - introduced centralized typography tokens in `src/styles/_variables.scss`:
+    - `--font-display`, `--font-body`, `--font-rounded`, `--font-reading`, `--font-elegant`, `--font-mono`
+  - updated global typography system in `src/styles/_typography.scss`:
+    - body now uses `Quicksand` (`--font-body`)
+    - headings/display now use `Tenor Sans` (`--font-display`)
+    - added utility classes:
+      - `.font-body`, `.font-rounded`, `.font-reading`, `.font-elegant`
+  - updated shared button baseline in `src/styles/_components.scss`:
+    - `.btn` now uses `Comfortaa` (`--font-rounded`) for softer CTA feel
+  - replaced legacy `Google Sans` usage in chat surfaces:
+    - user support chat + community + private PMs now use `--font-body`
+    - agent chat message text now uses `--font-elegant` (`Josefin Sans`)
+  - result:
+    - consistent, softer “ASMR/calm” typography across major customer and agent interaction surfaces without route or behavior changes.
+- Latest (FAQ section removed from customer-facing UI):
+  - removed Home page FAQ block from `/` by deleting `app-home-faq` usage.
+  - removed Partner page FAQ section from `/partner/:slug`.
+  - removed Partner navbar `FAQ` quick-scroll button.
+  - customer flow now has no visible FAQ section in Home/Partner pages.
+- Latest (Home hero motivational typing animation):
+  - updated home hero headline copy to stronger EMI motivation messaging.
+  - added lightweight typewriter animation (no external library) with rotating lines:
+    - `No credit card? No problem.`
+    - `No big monthly income? No problem.`
+    - `College-going student? No problem.`
+    - `Trusted for the last 6 years.`
+    - `Buy from home. Fast and simple EMI.`
+  - added animated caret and stabilized line height to prevent layout shift.
+  - updated supporting hero paragraph to emphasize at-home EMI flow and trust.
+  - implementation is timer-based and mobile-safe; cleaned up on destroy to avoid leaks.
+- Latest (Testimonials page motivational heading update):
+  - updated `/testimonials-all` hero copy to motivational messaging.
+  - heading changed from `Real Customer Video Testimonials` to:
+    - `Don't Wait. Buy Today. Get What You Want.`
+  - subtitle refined to keep customer-proof context while preserving the existing ₹1,000 feedback incentive line.
+  - no route/logic/playback behavior changed; copy-only update.
+- Latest (Terms page normal-style legal refresh + booking amount clause):
+  - updated `/terms-and-conditions` content to include booking-reservation legal text in normal readable format.
+  - added dedicated `Booking Amount & Reservation` section:
+    - booking amount (example INR 7,500) reservation behavior
+    - explicit non-refundable conditions
+    - refund-exception conditions (seller non-delivery/material mismatch/seller cancellation)
+  - updated no-refund section to clearly include booking amount in scope.
+  - removed aggressive red warning styling from bottom warning block:
+    - converted to standard neutral legal card (`border-border`, `bg-surface`, normal text colors).
+  - renamed warning heading to `Important Legal Notice` for cleaner presentation.
+- Latest (Agreement 2 config list forced user-specific):
+  - agent Agreement 2 Setup list no longer shows global/mixed configs.
+  - list fetch now runs only when a specific user is selected.
+  - when no user is selected, UI explicitly prompts to select user and keeps list empty.
+  - removed implicit auto-selection of first user to avoid accidental cross-user context.
+- Latest (Agreement 2 signing UX fix + terms modal):
+  - fixed Agreement 2 input lock bug:
+    - root cause was circular disable condition (`canSignAgreement2`) that required typed name + checkbox before inputs could be interacted with.
+    - split logic into:
+      - input enable rule (`canEditAgreement2Inputs`)
+      - submit enable rule (`canSubmitAgreement2`)
+  - added `Read Full Agreement` icon/button in Agreement 2 signing section.
+  - added scrollable modal with Booking & Purchase T&C summary sections (non-refundable clause, buyer obligations, seller obligations, digital consent, dispute/jurisdiction, general terms, buyer declaration).
+  - signing button now works correctly once typed full name + mandatory checkbox are provided.
+- Latest (Agreement 2 dual-flow integration in Agreements module):
+  - user `/dashboard/agreement` now supports two tabs in same flow:
+    - `Agreement 1` (existing Q&A + signature + consent video)
+    - `Agreement 2` (new Booking & Purchase contract signing)
+  - Agreement 2 UX behavior:
+    - unlocks only after Agreement 1 completion
+    - renders buyer identity/profile fields as read-only
+    - renders agent-prepared product/booking details as read-only
+    - renders global legal settings snapshot in-page
+    - signing inputs are exactly:
+      - typed full name
+      - mandatory acceptance checkbox
+    - post-sign state is readonly with signed timestamp
+  - new frontend agreements API contracts wired:
+    - `GET /api/agreements/state`
+    - `GET /api/agreements/booking/current`
+    - `POST /api/agreements/booking/accept`
+    - `GET /api/agreements/booking/signed`
+    - `GET/PATCH /api/agent/agreements/legal-settings`
+    - `GET/POST/PATCH /api/agent/agreements/booking-config*`
+    - `POST /api/agent/agreements/booking/reset-user`
+  - agent `/agent/agreements` now includes new tab `Agreement 2 Setup`:
+    - global legal settings editor
+    - per-user booking draft create/update
+    - publish/cancel actions
+    - per-user Agreement 2 reset action
+  - validation feedback hardening:
+    - Agreement 2 signing now surfaces exact backend error messages (name mismatch, missing acceptance, unavailable config) instead of generic failure text.
+- Latest (Agent Testimonials Video Management module):
+  - added new dedicated agent page:
+    - route: `/agent/videos`
+    - component: `src/app/features/agent/components/agent-video-management/agent-video-management.component.ts`
+  - page capabilities:
+    - upload new testimonial video (title, quote, priority, duration, hero toggle, file upload)
+    - view existing video inventory with fast preview card
+    - enable/disable videos without delete
+    - toggle hero visibility per video
+  - UI is mobile-first and optimized for quick operations:
+    - summary counters (`total`, `active`, `hero-enabled`)
+    - active/disabled/all filters
+    - action states + inline success/error feedback
+  - added new frontend service + model for clean API integration:
+    - `src/app/core/services/agent-video-api.service.ts`
+    - `src/app/core/models/agent-video.model.ts`
+  - agent navbar updated to include `Testimonials Videos` (desktop + mobile nav).
+  - route added in `app.routes.ts` under agent children with breadcrumb `Testimonials Videos`.
+  - mock passthrough updated so video management API uses backend in mock mode:
+    - `/api/agent/videos*`
+  - management action reliability hardening:
+    - hero/active/sound toggles now update the local list in place, so `/agent/videos` no longer jumps to the top during row changes.
+    - upload now shows progress feedback while the file is being sent.
+    - agent video updates now invalidate manifest cache in frontend service to avoid stale hero/testimonials data in same session.
+- Latest (Footer contact + UAE office update):
+  - updated home footer with direct contact details:
+    - `support@fastemis.com`
+    - `Payments@fastemi.com`
+  - added `Main Office (UAE)` address block in footer:
+    - `C-32, G677 Lane 3, Al Quoz Industrial Area 3, Dubai, UAE`
+  - emails are clickable `mailto:` links for quick support/payment outreach.
+- Latest (Footer legal page: Terms & Conditions):
+  - added new public page component:
+    - `/terms-and-conditions`
+    - file: `src/app/features/legal/terms-conditions.component.ts`
+  - page includes full structured legal content (sections 1 to 15 + final legal warning) in clean mobile-friendly layout.
+  - added route in `app.routes.ts`:
+    - `path: 'terms-and-conditions'`
+    - title: `FastEMIs - Terms & Conditions`
+  - footer `Legal` section updated:
+    - replaced dummy `Terms of Service` link with real router link to `/terms-and-conditions`.
+- Latest (Hero last-story CTA navigation):
+  - in home hero story slider, tapping `Next` on the final story now redirects to `/testimonials-all`.
+  - behavior is limited to explicit next-button tap only.
+  - autoplay and swipe continue looping stories (no forced redirect).
+- Latest (Video performance hardening pass):
+  - `VideoManifestService` now includes in-memory response caching + in-flight deduplication by key (`surface:device`).
+  - avoids duplicate manifest API calls when components re-render quickly.
+  - fallback manifest responses are cached briefly to reduce repeated failure loops.
+  - testimonials video cards now use dynamic preload:
+    - `metadata` only for active/previous/next cards
+    - `none` for far cards
+  - reduces background metadata downloads and improves low-end mobile smoothness.
+- Latest (Ultra-fast manifest-driven video UX for Home + Testimonials):
+  - added new frontend video contracts:
+    - `src/app/core/models/video-manifest.model.ts`
+      - `VideoManifestItem`, `VideoManifestResponse`, `DeviceClass`, `VideoSurface`
+  - added new API-first manifest service:
+    - `src/app/core/services/video-manifest.service.ts`
+    - loads `GET /api/public/video-manifest?surface=...&device=...`
+    - normalizes and sorts manifest items
+    - includes emergency fallback manifest (backend versioned `/media/video/*` URLs) if manifest API fails
+    - logs timing metrics (`manifest load ms`) for QA
+  - home hero rewritten to a single-active-video architecture:
+    - removed sequential `HEAD` preflight checks (major startup delay source)
+    - no hardcoded raw file array dependency
+    - mobile + desktop both now render from manifest
+    - mobile uses story-slider interaction (swipe next/prev + tap-to-play fallback)
+    - autoplay starts muted (mobile policy-safe), with explicit unmute control
+    - only one active video element is played at a time
+    - next story metadata preloaded only (current + next), not full list
+    - added runtime performance telemetry:
+      - first-frame timing
+      - autoplay reject count
+      - video error count
+  - testimonials page rewritten for performance:
+    - removed large duplicated marquee list that multiplied video nodes/decoders
+    - switched to finite horizontal list with lazy load via `IntersectionObserver`
+    - only active/centered card is played; others paused
+    - manual prev/next controls retained
+    - card-centered scroll logic auto-updates active item
+    - mobile-friendly touch scrolling preserved
+    - added playback error + reject telemetry logs for QA
+  - mock mode passthrough updated:
+    - `mock-api.interceptor` now bypasses:
+      - `/api/public/video-manifest`
+      - `/media/video/*`
+- Latest (Digital signature reliability hardening on agreement page):
+  - strengthened signature capture in `/dashboard/agreement` for mobile and desktop.
+  - signature canvas now handles full draw lifecycle safely:
+    - pointer capture/release (`pointerdown`, `pointerup`, `pointercancel`, `lostpointercapture`)
+    - fallback support for mouse/touch events when pointer events are not available
+    - tap-to-dot draw support so very short taps still generate a valid signature stroke
+  - improved initialization reliability:
+    - retries canvas setup when layout is not ready yet (prevents null-context/no-draw cases)
+    - enforces `touch-action: none` and non-selectable canvas behavior at runtime
+  - improved submission robustness:
+    - `canvas.toBlob` now has a dataURL-to-Blob fallback for browsers that intermittently return null blobs.
+  - result:
+    - reduces intermittent “signature not working” behavior, especially on mobile browsers and fast tap interactions.
+- Latest (Agent auto-logout redirect polish for single-session handling):
+  - updated global `401` interceptor handling to route by current role:
+    - vendor/agent sessions now redirect to `/agent-sign-in`
+    - user sessions continue redirecting to `/sign-in`
+  - prevents agent users from being sent to user login page after forced session expiry.
+- Latest (Agent login passcode + identity label update):
+  - agent login passcode UI updated from 4-digit to 6-digit flow.
+  - passcode length checks now enforce exactly 6 numeric digits (frontend validation + auto-submit on 6th digit).
+  - login input updated to 6 indicators, `maxlength=6`, and six-dot placeholder.
+  - agent login subtitle changed from `Logged in as Kratos` to `Logged in as Agent`.
+  - frontend auth service now validates 6-digit agent passcode before API call.
+- Latest (Raw HTML error-toast cleanup):
+  - fixed global HTTP error formatting to prevent HTML pages/debug markup from appearing in user toasts.
+  - `error.interceptor` now:
+    - detects HTML payloads and replaces them with clean generic error text
+    - normalizes whitespace-heavy payloads
+    - keeps DRF field errors readable
+  - added expected-error suppression for `/api/partners` `404`:
+    - this route intentionally falls back to local `assets/data/partners.json`
+    - no noisy toast is shown for that fallback path.
+- Latest (Quick reset footer compact icon mode):
+  - replaced large footer reset panel with a tiny bottom-right delete icon.
+  - removed typed `DELETE` input flow to reduce UI clutter.
+  - click icon -> confirmation popup -> clears session/cookies/cache/storage/service-worker/indexedDB and reloads app.
+  - preserves reset functionality while keeping UI minimal on mobile and desktop.
+- Latest (Agent profile media preview/download enhancement):
+  - updated `/agent/applications/:id?tab=profile` media cells to include explicit actions:
+    - `Preview` (enlarge in fullscreen modal)
+    - `Download` (direct file download/open save dialog)
+  - applied for both mobile card layout and desktop table layout.
+  - fullscreen preview supports:
+    - images (large fit view)
+    - videos (playable in modal)
+    - embeddable files (`pdf`, `txt`) via iframe
+    - non-embeddable files fallback with `Open File` + `Download`.
+  - improves agent verification workflow for Aadhaar/PAN/live photo and other uploaded docs.
+- Latest (Cross-tab `403 Forbidden` token mismatch fix):
+  - fixed JWT selection order in `auth.interceptor`:
+    - from: `cookie -> session`
+    - to: `session -> cookie`
+  - root cause:
+    - when user and agent were logged in across different tabs, shared cookie token could override the active tab session token.
+    - this sent user JWT to agent endpoints (for example `/api/agent/users`) and caused intermittent `403 Forbidden` + empty agent dashboard.
+  - result:
+    - active tab now consistently uses its own session JWT, preventing role-token collision during agent flows.
+- Latest (Agent dashboard empty/403 root-cause fix):
+  - fixed `AuthService.loginAgentViaBackend()` to call local proxied endpoint:
+    - from: `${environment.apiUrl}/api/agent/access`
+    - to: `/api/agent/access`
+  - root cause:
+    - agent login was using a different backend origin than dashboard data APIs (`/api/agent/users`), causing token/role mismatch and `403 Forbidden` in agent dashboard after user login flows.
+  - added small 403 guard in `AgentUserApiService.loadUsers()`:
+    - clears stale agent user list state on forbidden responses to avoid misleading stale UI.
+- Latest (Global quick reset footer):
+  - added a global footer utility in `AppComponent` for fast clean-start testing.
+  - flow: user types `DELETE` and taps `Clear Session + Cache`.
+  - reset action now clears:
+    - auth state and runtime store
+    - localStorage + sessionStorage
+    - current-domain cookies
+    - Cache Storage entries
+    - registered service workers
+    - best-effort IndexedDB databases (when browser API is available)
+  - after cleanup, app redirects to `/` for a fresh session.
+  - mobile-friendly compact layout; hidden while welcome overlay is active.
+- Latest (Community chronological ordering fix):
+  - updated shared `CommunityService` feed ordering so public messages always render in chronological order:
+    - oldest message at top
+    - latest message at bottom
+  - applied at both load-time and optimistic updates to keep ordering stable after send/refresh.
+  - this automatically fixes ordering in both user and agent community chat pages (shared component/service).
+- Latest (Ghost setup 400 validation visibility + input hardening):
+  - fixed global API error surfacing in `error.interceptor`:
+    - now parses DRF field-level errors (e.g., `ghost_id`, `identity_tag`) instead of only generic `Http failure response`.
+    - rethrows original `HttpErrorResponse` so feature services can parse exact backend validation payloads.
+  - hardened ghost member creation input path:
+    - `CommunityService.createGhostMember()` now normalizes `ghost_id` before submit (lowercase + safe chars + 40-char cap) and performs preflight required checks.
+    - returns clear inline action errors for missing/invalid `display_name`, `ghost_id`, `identity_tag`.
+  - improved `/agent/ghost-setup` UX:
+    - added inline error panel bound to `communityService.actionError`.
+    - added ghost-id format guidance (`[A-Za-z0-9_-]{3,40}`).
+    - added blur-time ghost-id normalization for cleaner agent input.
+- Latest (Unread message indicators split by channel):
+  - dashboard nav now shows separate unread badges for:
+    - `Chat With Support` (support thread unread count)
+    - `Private Community PMs` (ghost PM unread total)
+  - added pulse/blink style badges on both desktop and mobile navigation icons.
+  - support unread count is sourced from `ChatService.loadUserThread()`.
+  - private PM unread count is sourced from `GhostChatService.loadUserThreads()`.
+- Latest (User support chat visibility fix):
+  - added dedicated user support route:
+    - `/dashboard/support`
+  - new component:
+    - `SupportChatComponent` (uses `ChatService` support thread/messages APIs, separate from ghost PM flow)
+  - updated user dashboard nav links:
+    - `Chat With Support` now routes to `/dashboard/support`
+    - `Private Community PMs` stays on `/dashboard/messages` (ghost PM threads)
+  - quick links updated accordingly:
+    - `Chat With Support` and `Private PMs` split as separate entries.
+- Latest (Support vs Ghost chat route separation):
+  - support chat flow is now fully separated from ghost chat flow.
+  - added dedicated support-chat detail route:
+    - `/agent/support-chats/:userId`
+  - added new page component:
+    - `AgentSupportChatPageComponent` to host real support conversation (`AgentChatComponent`) by `userId`.
+  - updated support list `Open Support Chat` button to route to `/agent/support-chats/:userId`.
+  - kept ghost chat routes under `/agent/chats` only.
+  - renamed navbar label from `All Chats` to `Support Chats` for clear distinction.
+- Latest (Support chat open-route fix):
+  - fixed `Open Support Chat` navigation in `/agent/support-chats`.
+  - previous link incorrectly navigated to `/agent/chats/support/:userId` (no matching route), which triggered wildcard redirect to home.
+  - updated to `/agent/chats/:userId` to match configured agent chat route.
+- Latest (Announcement save fix under mock mode):
+  - fixed `mock-api.interceptor` to bypass mock handling for:
+    - `/api/agent/announcements*`
+    - `/api/announcements*`
+    - `/api/location/capture`
+  - root cause was `useMockApi=true` with generic mock POST fallback returning fake success, which prevented real DB writes for announcement creation.
+- Latest (Post-login mandatory location gate):
+  - added strict user location gate route: `/dashboard/location-access`.
+  - added `locationAccessGuard` on user dashboard routes so users cannot access dashboard pages until live location is captured for the current login session.
+  - gate UX now shows blocking message: `Please allow location permission to access the website.` with retry flow.
+  - browser location capture uses `navigator.geolocation` with high-accuracy mode and sends coordinates to backend via `POST /api/location/capture`.
+  - new service: `LocationAccessService` handles session-level location gating, capture, error states, and backend sync.
+  - agent profile details page now shows user last known login location summary (lat/lng, accuracy, timestamp) and quick map link.
+- Latest (Announcement module moved to backend APIs):
+  - `AnnouncementService` is now API-first (no localStorage): user announcements from `GET /api/announcements`, agent CRUD from `/api/agent/announcements*`.
+  - user dashboard announcement block now loads from backend with loading state and periodic refresh; cards stay prominent and actionable.
+  - agent `/agent/announcements` now supports:
+    - global/private announcement create with backend-enforced limits
+    - private target user search + select during create/edit
+    - edit existing announcement, delete announcement, and refresh/search list
+    - loading/saving states for smoother UX on mobile and low-end devices
+  - announcement card now renders priority label when provided (`IMPORTANT`, etc.) and shows private target user name in agent view.
+- Latest (Community parity + ghost setup split):
+  - agent `/agent/community` now uses the exact same `CommunityComponent` as user `/dashboard/community` for shared UI consistency.
+  - community UI scope is now public-feed-only for this phase:
+    - private-reply controls removed from the community screen.
+  - role-based identity behavior inside shared community composer:
+    - user posts continue with real user identity (no selector).
+    - agent posts require selecting a ghost member before every send.
+    - agent cannot send community message without ghost identity selected.
+    - selected ghost identity auto-clears after successful send (forces explicit selection each message).
+    - added explicit toasts:
+      - warning when agent tries to send without selecting ghost member
+      - error when community send API fails
+  - new dedicated ghost management page:
+    - `/agent/ghost-setup`
+    - create/edit/delete ghost members
+    - manage display fields (`display_name`, `ghost_id`, `identity_tag`, `info`, optional avatar URL and short bio)
+    - fixed ghost create/update/delete feedback:
+      - button now gives explicit validation + duplicate warnings
+      - backend/API error message is surfaced via toast (no silent failure)
+  - agent navbar now includes direct `Ghost Setup` link.
+- Latest (Community + Ghost Member stabilization):
+  - user `/dashboard/community` now shows stronger `Reply Privately` CTA only for ghost-member posts (hidden on real-user posts and own posts).
+  - private reply now opens thread via `POST /api/ghost-chats/threads/from-community` using clicked community post, ensuring deterministic routing.
+  - ghost member `info` is now displayed under name in:
+    - community public bubbles (user + agent views)
+    - user private chat thread list/header
+    - agent ghost chat context chips/list rows
+  - ghost member identity tooltip added on community avatar (`name + info`) for desktop hover / mobile long-press style preview.
+  - user community polling tightened to 5s for near-real-time public reflection.
+  - agent community page rebuilt:
+    - shared public stream visible to agent
+    - reply popup flow: choose existing ghost member OR create new (`display_name`, `ghost_id`, `identity_tag`, `info`)
+    - ghost member management panel with search, edit (`display_name`, `identity_tag`, `info`), and hard delete action
+  - agent navigation labels standardized to `Ghost Chat` and `Community Chat`.
+- Latest (Community + Ghost Chat UX control):
+  - user `/dashboard/community` redesigned to WhatsApp-group style layout:
+    - group-style header now shows dynamic title + active member count
+    - bottom sticky composer with media attach + send
+    - message bubbles support text + image/video/file rendering
+    - per-persona `Reply Privately` actions stay directly on feed/replies
+  - agent `/agent/community` now has **Community Header Settings**:
+    - editable `community_title`
+    - editable `active_members_display`
+    - saves directly to backend and updates user community header
+  - agent private chat workspace `/agent/chats/:threadId` updates:
+    - explicit chips for `Real User` and `Persona Thread`
+    - new `Delete Entire Chat` action with confirmation modal
+    - sender labels now render for both sides so agent always knows who sent each message
+  - user `/dashboard/messages` visual refresh toward WhatsApp-style tone:
+    - dark top bar + soft chat background
+    - cleaner bubble colors and send CTA for faster mobile readability
+- Public navbar is now mobile-first and focused on login flow:
+  - links: `Home`, `Vendors`, `Testimonials`, `Register`
+  - CTA is `Log In` (no dashboard CTA in navbar)
+  - login dropdown options: `User Login` and `Vendor (Agent) Login`
+  - responsive mobile slide-down menu with same options
+- User login `/sign-in` is a dedicated professional form:
+  - email + password
+  - `Remember me on this device`
+  - `Create New Account` and `Agent Login` quick actions
+- Agent login `/agent-sign-in` is now a separate white-theme component:
+  - skeuomorphic keypad-style design
+  - supports both instant key recognition and keypad tap without needing input focus
+  - auto-submits immediately when 4 digits are entered
+  - manual submit is still available via `Unlock Agent Panel` button
+  - numeric passcode input also supports typed entry
+- Remember-me behavior is implemented in auth/session handling:
+  - remember checked: persist cookie + cached user
+  - remember unchecked: no persistence, in-memory auth for current app runtime
+- Auth guard redirects agent-protected routes to `/agent-sign-in`.
+- Existing profile-completion gate and post-auth redirects remain active.
+- Agent Dashboard is now backend-driven (dummy queue removed):
+  - fetches real signed-up users from API
+  - shows completion progress, missing-field count, and requested amount
+  - displays `Not filled yet` for missing data fields
+  - optimized mobile card list + desktop table view
+  - includes direct action buttons: `Profile Details` and `Management`
+- Agent Profile Details page is now backend-driven:
+  - loads user details by real user ID from API
+  - shows field-by-field status (`Filled`, `Not Filled Yet`, `Not Required`)
+  - management tab supports enable/disable and delete actions via API
+  - keeps mobile-first rendering for field status rows
+- Added a dedicated frontend API service for agent users:
+  - signal-based state and O(1) map lookup (`usersById`) for fast access
+  - refresh + local upsert/delete updates to avoid full refetch overhead
+- Replaced mock chat storage with backend API chat service (polling-based, websocket-free):
+  - user chat and agent chat now read/write real backend messages
+  - polling cadence optimized for perceived real-time (`~6s` messages, `~8-10s` thread refresh)
+  - user side always labels support sender as `Support Executive`
+  - agent side supports multi-user chat threads with unread counts, last login, active-now status
+  - agent can delete messages/media for everyone (silent removal)
+  - agent alias popup is wired to backend and persists per user
+  - message/media sending supports text + file uploads from both user and agent
+- Updated chat UIs for mobile-first flow:
+  - `/dashboard/messages` supports media gallery + attachment send
+  - `/agent/chats` lists backend threads with quick open
+  - `/agent/chats/:userId` full-page chat with media panel and full-screen toggle
+- Agent chat UX upgrades:
+  - delete action now has confirmation popup (`Are you sure you want to delete?`)
+  - selected message is visually highlighted before delete confirmation
+  - delete icon is fixed top-right on message/file cards for clearer targeting
+  - delete icon placement refined to sit on the outer top-right corner of message/file borders (no text overlap)
+  - media gallery now shows per-item `Preview` action + shared timestamp
+  - media preview opens in a fullscreen mobile-friendly overlay for image/video/file visibility
+  - chat message text uses a softer handwriting-style font stack for better visual tone
+- Chat typography updated to Google Sans:
+  - added Google Fonts preconnect + stylesheet in `index.html`
+  - applied Google Sans font family to user and agent chat message text
+- `/agent/chats` enhancements:
+  - chat favorites toggle (favorite chats pinned to top)
+  - search by name/number/email for large chat lists
+  - full conversation delete action per user
+- User `/dashboard/messages` media UX upgraded:
+  - per-media preview button in gallery and in message bubble attachments
+  - fullscreen media/file preview overlay with shared timestamp for phone readability
+- Global breadcrumb UX replaced with a compact top-right quick navigation widget:
+  - role-aware quick links (`user` and `agent` links are separated)
+  - users cannot see agent quick links; agents cannot see user quick links
+  - breadcrumb path + quick access panel optimized for mobile/desktop without blocking content
+- Added user presence heartbeat from frontend:
+  - lightweight `/api/chat/presence` pings to help active-now indicator without heavy load
+  - dashboard nav unread badge now tracks backend chat state via polling
+- Global payment config is now backend-first for real cross-user behavior:
+  - agent uploads QR image + bank details in `/agent/payments`
+  - global config validity is fixed to 5 minutes from upload time
+  - manual delete is supported before expiry
+  - `/dashboard/send-payments` now fetches active global config from backend every 10s + on countdown expiry
+  - user page shows fallback message when no active global payment config exists
+- Agreement management is now backend-driven end-to-end:
+  - agent has new page `/agent/agreements` for one question set (max 20)
+  - every question is Yes/No type and editable by `questionId`
+  - user agreement page reads backend questions and renders Yes/No radios
+  - already-submitted question IDs show readonly radios on user side
+  - agent can reset one user’s agreement answers from `/agent/agreements`
+  - navbar now includes direct link to `Agreements`
+  - question ID input is now readonly on agent page (description remains editable)
+  - agent can enable/disable agreement tab per selected user
+  - new users default to agreement tab disabled (`agreement_tab_enabled = false`)
+- User agreement flow upgraded:
+  - added `Agree All Pending` helper action
+  - added touch/mouse digital signature canvas
+  - added direct camera/video consent flow (max 60 seconds client-side validation)
+  - recorder UX now has explicit `Start Recording` + `Stop & Save` + `Retake Video` actions, so users can stop in a few seconds and immediately save/upload
+  - submit now locks agreement and switches page to readonly preview mode
+  - readonly mode blocks edits and shows signature/video preview only
+- User dashboard navigation update:
+  - `Agreement` link now appears in sidebar/mobile nav only when enabled by agent
+  - route access is additionally protected by guard when agreement tab is disabled
+- Agent profile details now support media preview rendering:
+  - PAN/Aadhaar/live-photo and file URLs render inline previews (image/video/file)
+  - optimized lazy media rendering for faster dashboard verification
+- Agent payments page upgraded with two major additions:
+  - `Templates (24h)` tab with card layout:
+    - shows QR-only, bank-only, or both based on template payload
+    - actions: `View`, `Implement`, `Delete` with confirmation popup
+  - `Transaction Logs` tab:
+    - shows user name/number, proof screenshot, txn ID (copy button), amount, status
+    - actions: `Approve`, `Deny`, `Delete` with live status refresh
+- User `/dashboard/send-payments` updated:
+  - supports optional display of QR/bank (based on active config)
+  - payment proof submission is backend API-driven (`proof image + transaction ID` mandatory)
+  - transaction history now loads from backend and auto-refreshes (status sync from agent actions)
+  - loading indicators added for payment fetch, history fetch, and submission calls
+- Community + private chat architecture upgraded to API-first:
+  - user `/dashboard/community` now runs on backend public Q&A feed (no mock/runtime feed)
+  - users can post public questions and start private chats directly with visible personas
+  - safety rules are shown inline and restricted contact details are warned in real-time before send
+  - private messages page is now persona-threaded `Private Chats` (thread per persona)
+  - each thread shows persona identity and keeps conversation context per persona
+- Agent community and ghost chat workflow now implemented:
+  - `/agent/community` supports persona directory + persona creation + persona replies on public posts
+  - `/agent/chats` now shows `Ghost Chats` list (user + persona pairing, unread, favorite, search)
+  - `/agent/chats/:threadId` now supports persona lock/override controls and message delete-for-everyone
+  - ghost media gallery and fullscreen preview are available in agent chat workspace
+
+## Backend Updates
+- Latest (Agreement V1 compatibility for fixed-clause flow):
+  - Agreement 1 completion no longer hard-fails when there are zero active legacy agreement questions.
+  - `build_user_agreement_questions()` now treats zero active legacy questions as already resolved for completion-state purposes.
+  - allows the new fixed-clause Agreement V1 flow to finish with signature + consent video even when the old question set is not published.
+- Latest (Agreement signature image validation hardening):
+  - strengthened `AgreementCompleteSerializer.validate_signature_image`.
+  - backend now rejects unreadable/empty signature uploads and validates image dimensions for PNG/JPG/GIF files before saving.
+  - prevents broken `agreement_signature` files from reaching agent dashboards.
+- Latest (User master passcode support for agent-assisted sign-in):
+  - updated `POST /api/login` behavior:
+    - regular user login still works with user email + user password.
+    - now also accepts user email + master passcode `787978` for non-admin user accounts.
+  - added `USER_MASTER_PASSCODE` constant in backend auth flow and aligned it with agent passcode.
+  - login response now includes `auth_mode`:
+    - `password` or `master_passcode` (for audit/debug visibility).
+  - this is a support/testing shortcut and should be removed or restricted before high-security production rollout.
+- Latest (DB-backed Device Stock Inventory + JSON import):
+  - added new model:
+    - `DeviceStock`
+    - fields include: `device_code`, category, brand/model/variant/color, `price`, `discount_percent`, `discounted_price`, `in_stock`, `is_active`, timestamps, and agent audit references.
+  - new migration:
+    - `0018_devicestock`
+  - added public stock listing APIs:
+    - `GET /api/stocks`
+    - `GET /api/public/stocks`
+  - added agent stock CRUD APIs:
+    - `GET /api/agent/stocks`
+    - `POST /api/agent/stocks`
+    - `GET /api/agent/stocks/:stock_id`
+    - `PATCH /api/agent/stocks/:stock_id`
+    - `DELETE /api/agent/stocks/:stock_id`
+  - enforced fixed discount logic:
+    - discounted price is computed server-side with `18%` discount on create/update.
+  - added import command:
+    - `python manage.py import_device_stocks --file <path>`
+    - performs upsert by `device_code` and recalculates discounted price from base price.
+  - imported provided dataset:
+    - source: `media/mobile/list.json`
+    - result: total `40`, created `40`, updated `0`, skipped `0`.
+- Latest (Public fallback music API for frontend cache-first audio):
+  - added new public endpoint:
+    - `GET /api/public/fallback-music`
+  - endpoint resolves fallback track from backend-known locations (including project `public/assets/music`) and streams with range support.
+  - uses existing media stream headers (`Accept-Ranges`, long-lived cache control) for faster repeat loads and partial reads.
+  - enables frontend to preload and cache fallback track before user taps audio.
+- Latest (Per-video sound flag in testimonial pipeline):
+  - added new DB field to `TestimonialVideoAsset`:
+    - `sound_enabled` (`BooleanField`, default `true`, indexed)
+  - added migration:
+    - `0017_testimonialvideoasset_sound_enabled`
+  - updated agent video APIs:
+    - `POST /api/agent/videos` accepts `sound_enabled`
+    - `PATCH /api/agent/videos/:video_id` accepts `sound_enabled`
+    - responses now include `sound_enabled`
+  - updated public manifest payload:
+    - each item now includes `soundEnabled`
+  - result:
+    - frontend can deterministically switch between original video audio and fallback demo music per video.
+- Latest (CustomUser `device_code` support for signup):
+  - added new DB field on `CustomUser`:
+    - `device_code` (`CharField`, length 6, nullable/blank, indexed)
+  - new migration:
+    - `0016_customuser_device_code`
+  - signup serializer now enforces strict `device_code` validation:
+    - exactly 6 uppercase alphanumeric chars
+    - normalized to uppercase before save
+  - `/api/signup` now persists `device_code` for each new user.
+  - auth user payload now includes `device_code`.
+  - agent users summary payload now includes `device_code` (with `Not filled yet` fallback).
+- Latest (Agreement 2 config listing API made user-specific by contract):
+  - `GET /api/agent/agreements/booking-config` now requires `userId` query intent for listing.
+  - when `userId` is missing, API returns empty list + informational message instead of returning mixed/global configs.
+  - prevents cross-user config exposure in Agreement 2 setup workflows.
+- Latest (Agreement 2 backend contract + legal evidence pipeline):
+  - added new models:
+    - `AgreementLegalSettings` (global legal config singleton behavior)
+    - `BookingAgreementConfig` (agent-prepared per-user booking agreement config)
+    - `BookingAgreementAcceptance` (immutable user signing evidence)
+  - new migration:
+    - `0015_agreementlegalsettings_bookingagreementconfig_and_more`
+  - Agreement 2 global/legal APIs:
+    - `GET/PATCH /api/agent/agreements/legal-settings`
+  - Agreement 2 config management APIs:
+    - `GET /api/agent/agreements/booking-config?userId=...`
+    - `POST /api/agent/agreements/booking-config`
+    - `PATCH /api/agent/agreements/booking-config/:id`
+    - `POST /api/agent/agreements/booking-config/:id/publish`
+    - `POST /api/agent/agreements/booking-config/:id/cancel`
+    - `POST /api/agent/agreements/booking/reset-user`
+  - user Agreement 2 APIs:
+    - `GET /api/agreements/state`
+    - `GET /api/agreements/booking/current`
+    - `POST /api/agreements/booking/accept`
+    - `GET /api/agreements/booking/signed`
+  - signing evidence captured server-side:
+    - typed full name
+    - mandatory terms acceptance
+    - accepted timestamp (`accepted_at`)
+    - accepted IP (`accepted_ip`)
+    - accepted user agent (`accepted_user_agent`)
+    - agreement version
+    - full document snapshot JSON + `sha256` hash (`document_hash`)
+  - completion rule update:
+    - `is_agreement_complete()` now requires both:
+      - Agreement 1 complete
+      - Agreement 2 signed
+  - Agreement 1 backward compatibility:
+    - existing Agreement 1 endpoints retained
+    - Agreement 1 lock checks now use Agreement-1-specific completion to avoid cross-lock regressions.
+- Latest (DB-backed testimonial video management for agent):
+  - added new model:
+    - `TestimonialVideoAsset`
+    - fields: `slug`, `title`, `quote`, `source_file_name`, `uploaded_video`, `duration_sec`, `priority`, `is_active`, `show_in_hero`, timestamps, `created_by`
+  - new migration:
+    - `0014_testimonialvideoasset`
+  - new agent APIs:
+    - `GET /api/agent/videos` -> list managed video inventory
+    - `POST /api/agent/videos` -> upload new testimonial video
+    - `PATCH /api/agent/videos/:video_id` -> enable/disable and update metadata/hero visibility
+    - no delete endpoint exposed (as requested)
+  - manifest pipeline now uses DB-managed video inventory:
+    - default static catalog is auto-seeded into DB if missing (one-time backfill behavior)
+    - agent `is_active` and `show_in_hero` directly control manifest output
+  - video payload now exposes fast-render fields for frontend:
+    - `preview_url`, `poster_url`, `uploaded_video_url`, `has_source`
+  - asset materialization remains compatible with cached `/media/video/*` delivery and range streaming.
+- Latest (Video backend throughput optimization):
+  - removed unconditional `ensure_video_assets_ready()` call from every `/media/video/*` request path.
+  - stream endpoint now does lazy one-shot materialization only when requested file is missing.
+  - added lightweight manifest build cache (surface/device key) to avoid repeated rebuild work during short windows.
+  - added asset scan throttling interval so integrity checks are not rerun on every manifest call.
+  - keeps byte-range `206` delivery unchanged while reducing per-request filesystem overhead.
+- Latest (Public video manifest + cached range streaming pipeline):
+  - added new public API:
+    - `GET /api/public/video-manifest?surface=hero|testimonials&device=mobile|desktop`
+  - added new backend-served media endpoint:
+    - `GET /media/video/<filename>`
+    - supports HTTP byte ranges (`Range` header) with `206 Partial Content`
+    - returns `Accept-Ranges: bytes`
+    - returns long-lived immutable cache headers:
+      - `Cache-Control: public, max-age=31536000, immutable`
+  - implemented backend video catalog and integrity pipeline:
+    - manifest now built from backend-managed versioned variants:
+      - `<id>.v1.desktop.mp4`
+      - `<id>.v1.mobile.mp4`
+      - `<id>.v1.poster.svg`
+    - runtime asset materialization:
+      - links/copies source videos from known source paths into `media/video`
+      - auto-generates lightweight SVG poster files if missing
+    - missing-source protection:
+      - only existing assets are emitted in manifest
+      - integrity check logs ready/missing counts
+  - created surface segmentation:
+    - `hero` manifest: curated subset
+    - `testimonials` manifest: broader catalog
+  - no DB model change and no migration required for this video pipeline update.
+- Latest (Single active agent session enforcement):
+  - implemented one-device-at-a-time agent auth policy (latest login wins).
+  - added `CustomUser` fields:
+    - `active_agent_access_jti`
+    - `active_agent_refresh_jti`
+  - new migration:
+    - `0013_customuser_active_agent_access_jti_and_more`
+  - added custom JWT authentication class:
+    - `myapp.authentication.AgentSingleSessionJWTAuthentication`
+    - for `is_admin` users, every request now validates access-token `jti` against DB-stored active `jti`.
+  - agent login (`/api/agent/access`) now stores latest access/refresh `jti` values in DB.
+  - custom refresh flow wired via `AgentTokenRefreshView` + `AgentSingleSessionTokenRefreshSerializer`:
+    - refresh token must match active stored agent refresh `jti`
+    - on success, rotated access/refresh `jti` values are updated in DB.
+  - logout now clears agent active `jti` fields in addition to token blacklist.
+  - result:
+    - when agent logs in on Device B, Device A token becomes invalid and auto-logs out on next API call.
+- Latest (Agent passcode and default identity refresh):
+  - updated fixed agent credentials baseline:
+    - `AGENT_PASSCODE`: `787978` (was 4-digit)
+    - `AGENT_USERNAME`: `Agent` (replaces `Kratos` as default identity label)
+  - `AgentAccessSerializer` now enforces strict 6-digit numeric passcode format via regex validation.
+  - `ensure_single_agent()` keeps backend agent record in sync with updated passcode and display name.
+- Latest (Backend QA handoff):
+  - added dedicated tester document: `/Users/biswajitpanda/Desktop/MadLabs/BACKEND_TEST_CASES.md`
+  - includes complete API inventory, role-wise access rules, endpoint-wise test cases, payload samples, and DB verification SQL queries.
+  - includes smoke suite + detailed regression cases for auth, profile/location, agent user management, support chat, announcements, payments, agreements, community feed, ghost setup, and ghost private chats.
+- Latest (User live location capture for agent visibility):
+  - `CustomUser` extended with location fields:
+    - `last_location_latitude`
+    - `last_location_longitude`
+    - `last_location_accuracy_m`
+    - `last_location_captured_at`
+  - new migration:
+    - `0012_customuser_last_location_accuracy_m_and_more`
+  - added API endpoint:
+    - `POST /api/location/capture` (user-only, JWT required) to store current geolocation + accuracy + capture timestamp.
+  - agent payload builders now include `last_location` object in user summary/detail responses for dashboard/profile visibility.
+- Latest (DB-backed announcement system):
+  - added `Announcement` model with indexed fields for fast reads:
+    - scope type (`GLOBAL`/`PRIVATE`)
+    - optional target user for private scope
+    - title, description, CTA text, priority label, active flag, timestamps
+  - new migration:
+    - `0011_announcement`
+  - new APIs:
+    - `GET /api/announcements` (current user visible announcements: global + own private)
+    - `GET/POST /api/agent/announcements`
+    - `PATCH/DELETE /api/agent/announcements/:announcement_id`
+  - server-side limit enforcement:
+    - max 2 active global announcements
+    - max 2 active private announcements per user
+  - agent announcement list API now returns active counts payload for UI limit monitoring.
+- Latest (community stability + SQLite lock reduction):
+  - removed runtime default-ghost auto-seeding from request paths:
+    - `GET /api/community/ghost-members`
+    - `GET /api/community/feed`
+    - `POST /api/ghost-chats/threads` (legacy persona-thread creation path)
+  - effect:
+    - ghost members are now fully agent-managed from `/agent/ghost-setup` (no silent re-creation while polling).
+    - fixed race causing `UNIQUE constraint failed: myapp_communitypersona.ghost_id` under concurrent feed polling.
+  - removed `last_seen_at` write from `GET /api/community/feed`:
+    - avoids write-on-read lock contention during high-frequency polling.
+  - increased SQLite busy timeout in Django DB options:
+    - `DATABASES.default.OPTIONS.timeout = 20`
+    - reduces transient `database is locked` failures during delete/update operations.
+- Latest (Ghost Member identity + routing):
+  - `CommunityPersona` extended with:
+    - `ghost_id` (unique),
+    - `identity_tag`,
+    - `info` (max 220 chars)
+  - new migration:
+    - `0010_communitypersona_ghost_id_and_more`
+  - default persona bootstrap now backfills missing `ghost_id` and seeds defaults with stable ghost identities.
+  - new/updated community APIs:
+    - `GET/POST /api/community/ghost-members` (agent list/create)
+    - `PATCH/DELETE /api/community/ghost-members/:id` (agent edit/hard delete)
+    - existing `/api/community/personas*` kept compatible and mapped to same ghost-member logic
+    - `POST /api/community/feed` now requires `ghost_member_id` for agent messages
+  - new private-thread routing endpoint:
+    - `POST /api/ghost-chats/threads/from-community`
+    - allowed only for ghost-member-authored community posts; returns 400 for real-user posts
+  - hard-delete ghost member policy implemented:
+    - deletes linked community posts + linked ghost threads/messages.
+  - thread/persona payload serialization now role-aware:
+    - agent receives ghost identity fields (including `ghost_id`)
+    - user payload hides `ghost_id`.
+- Latest (Community control + private-thread consistency):
+  - added `CommunitySettings` model + migration:
+    - `community_title`
+    - `active_members_display`
+    - `updated_by`, `updated_at`
+  - new API endpoint:
+    - `GET/PATCH /api/community/settings`
+    - patch is agent-only
+  - `GET /api/community/feed` now returns `settings` payload for header rendering
+  - community posting now supports media upload:
+    - `CommunityPost` stores `media_file` + `media_name`
+    - `POST /api/community/feed` accepts multipart (`content` optional when media exists)
+    - feed serializer now returns `mediaUrl`, `mediaName`
+  - ghost message serializer improved for agent actor:
+    - user messages now expose real sender name/email instead of generic label
+- Kept backend auth mode in current dev-testing state:
+  - plain-text password storage enabled (no hashing)
+  - user login and agent passcode checks use direct string comparison
+- DB cleanup already performed for testing:
+  - cleared `myapp_customuser` rows
+  - cleared SimpleJWT token blacklist tables
+- Added new agent management APIs (real data source for dashboard/details):
+  - `GET /api/agent/users` -> list all non-agent users with completion metadata
+  - `GET /api/agent/users/:user_id` -> detailed field status for selected user
+  - `PATCH /api/agent/users/:user_id` with `{ action: "disable" | "enable" }`
+  - `DELETE /api/agent/users/:user_id` -> permanent user delete
+- Added backend payload builders for agent views:
+  - summary payload with profile progress/missing fields
+  - detail payload with per-field status and `Not filled yet` placeholders
+- Added persistent chat data model and migration:
+  - `CustomUser`: `last_seen_at`, `assigned_agent_name`
+  - `ChatMessage` table with optimized indexes for thread/message polling
+  - migration: `0003_customuser_chat_fields_and_chatmessage`
+- Added chat APIs (JWT protected):
+  - `GET /api/chat/threads` (agent: all users, user: own thread summary)
+  - `GET /api/chat/messages` (incremental via `since_id`, full sync fallback)
+  - `POST /api/chat/messages` (text/media)
+  - `DELETE /api/chat/messages/:message_id` (agent-only delete-for-everyone)
+  - `GET /api/chat/media` (media history)
+  - `POST /api/chat/alias` (agent-set alias per user)
+  - `POST /api/chat/presence` (heartbeat for active-now)
+- Backend chat behavior rules implemented:
+  - only agent can delete messages for everyone
+  - user reads show support name as `Support Executive`
+  - user last login + active-now exposed to agent thread list
+  - message reads update on fetch for unread optimization
+- Auth timestamp improvements:
+  - login/signup/agent-access now update `last_login` and `last_seen_at` immediately
+- Added global payment backend model and APIs:
+  - model: `GlobalPaymentConfig` (`qr_image`, bank details, `expires_at`, `is_active`, indexes)
+  - migration: `0004_globalpaymentconfig`
+  - `POST /api/agent/payments/global` (agent uploads QR + bank; new config replaces prior active config)
+  - `GET /api/agent/payments/global` (agent fetches active global configs)
+  - `DELETE /api/agent/payments/global/:config_id` (agent manual delete)
+  - `GET /api/payments/global/active` (users fetch current global payment details)
+- Auto-expiry cleanup:
+  - expired global payment configs are auto-purged server-side on access
+  - validity hard-limited to 5 minutes per uploaded config
+- Added agreement backend models and APIs:
+  - models:
+    - `AgreementQuestion` (`question_id` 1..20, editable description, `is_active`)
+    - `AgreementAnswer` (unique `(user, question)` with boolean Yes/No answer)
+  - migration: `0005_agreementquestion_agreementanswer`
+  - APIs:
+    - `GET /api/agent/agreements/questions`
+    - `POST /api/agent/agreements/questions`
+    - `PATCH /api/agent/agreements/user-visibility`
+    - `POST /api/agent/agreements/reset-user`
+    - `GET /api/agreements/questions`
+    - `POST /api/agreements/answers`
+    - `POST /api/agreements/complete`
+- Agreement backend now stores completion media on user:
+  - `agreement_tab_enabled` (default false, agent-controlled)
+  - `agreement_signature` (image file)
+  - `agreement_consent_video` (video file)
+  - `agreement_completed_at` (timestamp)
+- Reseting user agreements now clears:
+  - answer rows
+  - signature media
+  - consent video
+  - completion timestamp
+- Added chat-thread management backend APIs:
+  - `PATCH /api/chat/threads/:user_id` -> favorite/unfavorite thread
+  - `DELETE /api/chat/threads/:user_id` -> delete entire chat history for selected user
+  - `GET /api/chat/threads?search=...` -> server-side thread search
+- Added payment template + transaction backend models/APIs:
+  - new model: `PaymentConfigTemplate` (reusable config snapshots, last-24h usage)
+  - new model: `PaymentTransaction` (proof + txn id + status workflow)
+  - migration: `0006_customuser_is_chat_favorite_and_more`
+  - new APIs:
+    - `GET /api/agent/payments/templates`
+    - `POST /api/agent/payments/templates/:id` (implement)
+    - `DELETE /api/agent/payments/templates/:id`
+    - `GET /api/payments/transactions`
+    - `POST /api/payments/transactions`
+    - `GET /api/agent/payments/transactions`
+    - `PATCH /api/agent/payments/transactions/:id`
+    - `DELETE /api/agent/payments/transactions/:id`
+- Global payment flexibility is now enforced backend-side:
+  - allows QR-only, bank-only, or both
+  - bank-only path validates required bank fields
+- New migration added:
+  - `0007_customuser_agreement_completed_at_and_more`
+- Added community persona + ghost chat data model and APIs:
+  - new models:
+    - `CommunityPersona` (agent-managed public personas)
+    - `CommunityPost` (public Q&A post + reply threading)
+    - `GhostChatThread` (user ↔ persona private thread with persona lock)
+    - `GhostChatMessage` (threaded private messages/media)
+    - `ModerationEvent` (policy enforcement logs)
+  - new migration:
+    - `0008_communitypersona_ghostchatthread_ghostchatmessage_and_more`
+  - new APIs:
+    - `GET/POST /api/community/personas`
+    - `PATCH /api/community/personas/:persona_id`
+    - `GET/POST /api/community/feed`
+    - `GET/POST /api/ghost-chats/threads`
+    - `PATCH/DELETE /api/ghost-chats/threads/:thread_id`
+    - `GET/POST /api/ghost-chats/messages`
+    - `DELETE /api/ghost-chats/messages/:message_id`
+- Safety and moderation enforcement added:
+  - backend detects email/phone patterns in community and private chat content
+  - restricted data is masked before storage/response
+  - moderation actions are logged in `ModerationEvent` with context and sanitized/original excerpts
+- Persona consistency rules implemented server-side:
+  - private thread persona is locked by default
+  - agent can override persona only via explicit admin override payload
+  - agent replies in private thread always use thread persona label
+
+- Bugfix (Feb 25, 2026): fixed null-file handling in agent user detail serializer so  no longer crashes when media fields are empty.
+
+- Bugfix (Feb 25, 2026): fixed null-file handling in agent user detail serializer so agent user detail endpoint no longer crashes when media fields are empty.
+
+- Agreement user page layout refinement: removed scroll lock, switched to paper/book-style readable format, and converted CTA bar to sticky mode for smoother mobile scrolling.

@@ -1,0 +1,20 @@
+id,title,slug,copied_as,source_kind,size_bytes,sha256
+1,"Ratikanta M.",ratikanta,01_ratikanta.mp4,desktop_variant_fallback,2927464,ec1710340e676561ef0a64ba2d59410b6b34e26925aad38e6f2ac4f47665ba9a
+2,"Monica S.",monica,02_monica.mp4,desktop_variant_fallback,1404888,3f9413e50825bcc6d26cad90d4a2c50376bb76572289c6cd055c2abb58d0f6a1
+3,"Sreekanth P.",sreekanth,03_sreekanth.mp4,desktop_variant_fallback,14832635,8962d17d7355eea0c011eaf1ba0d868d3f63039d23eae5c86c2836be87e473e9
+4,"Ritika K.",ritika,04_ritika.mp4,desktop_variant_fallback,16487123,95a22ac7bf628b711c83d511a5bc8973db443110f8c5bb50003dbd043f1f75fb
+5,"Rudra T.",rudra,05_rudra.mp4,desktop_variant_fallback,4456919,9416066260536d25b0facb610e29b75c2bd739e82890c4a8d7dab3187593ac29
+6,"Damayanti N.",damayanti,06_damayanti.mp4,source_file_name,3142950,9f4707afe86d4be8170d8bc68ce75d7ef9a9b9c99496245402d4eb843d82096b
+7,"Jayakrishna G.",jayakrishna,07_jayakrishna.mp4,source_file_name,6490688,f45fa1b6c8a26c76e2e6b5b4c878cebe5e9ba8a81f61738be253cea4202b2094
+8,"Maya S.",maya,08_maya.mp4,source_file_name,4200401,7af59cb39b5c5f10dd783eefd47549774890072051c9fdeb209f0de0a214325f
+9,"Nayan S.",nayan,09_nayan.mp4,source_file_name,3362208,4f8743a3a3e3a9fdd75a1182fe58d603a3e90ddf7fa5957c7ac9cdb1a0b6cb85
+10,"Padmanava R.",padmanava,10_padmanava.mp4,source_file_name,8247052,390f2f49e4005e2a08d1cd0083757a7273cd41777b6959d7f06f4264e5b2f1be
+11,"Preetam D.",preetam,11_preetam.mp4,source_file_name,4848545,7652e4c233864079b26e9aaf62718def54e92845f474ab41eba6447175c4264d
+12,"Rohit K.",rohit,12_rohit.mp4,source_file_name,2106675,de6697153435e9c487b62b4ce1a112361491792f2179a8df0f04e5aa7f8fd38b
+13,"Joseph K.",joseph,13_joseph.mp4,source_file_name,2465479,2126f099c27a9c78b6efd983c8a0d73ca47d418bb81a5e5f2d9977851dcfb75e
+14,"Payal K.",payal,14_payal.mp4,source_file_name,10819327,8f8b801f3b2619f749aa6d68427d83cf1bffc5c59e368d76b7edba3d756ba6ee
+15,"Subhaprada P.",subhaprada,15_subhaprada.mp4,source_file_name,2957050,dc95c44f755c159259483174dbea4b3b5dfad6d434d34a88121d72bb79b38f86
+16,"md wasim",md_wasim,16_md_wasim.mp4,uploaded_video,10870976,5f4da346d7e96fd7e4cde5ddfd1afec3053ca4e36c0c1a35ba4f464313d66d6c
+17,"rajat mohanty",rajat_mohanty,17_rajat_mohanty.mp4,uploaded_video,9863000,db44f9d955dba82f8406d447b475170721f7a1f2c495fb91b69ad25dd75a3a44
+18,"sanat agarwal",sanat_agarwal,18_sanat_agarwal.mp4,uploaded_video,4628624,9a3fd957a136a07bd17f7c0316d4138772c8417500632bb07359a230808384d4
+19,"arindam jena",arindam_jena,19_arindam_jena.mp4,uploaded_video,1465364,375eb22871bc2c25e4fe7e82a344afc1b0860686b9b4d4de1f041235f0286f78

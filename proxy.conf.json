@@ -1,0 +1,14 @@
+{
+    "/api": {
+        "target": "https://engine.fastemis.com/fastEMIsBackend",
+        "secure": false,
+        "changeOrigin": true,
+        "logLevel": "warn"
+    },
+    "/media": {
+        "target": "https://engine.fastemis.com/fastEMIsBackend",
+        "secure": false,
+        "changeOrigin": true,
+        "logLevel": "warn"
+    }
+}

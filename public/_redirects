@@ -1,0 +1,3 @@
+/api/*  https://engine.fastemis.com/fastEMIsBackend/api/:splat  200
+/media/*  https://engine.fastemis.com/fastEMIsBackend/media/:splat  200
+/*    /index.html   200
