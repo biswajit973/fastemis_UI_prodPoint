@@ -1,12 +1,12 @@
 {
     "/api": {
-        "target": "https://engine.fastemis.com/fastEMIsBackend",
+        "target": "https://engine.trustedcodes.co.in/fastEMIsBackend",
         "secure": false,
         "changeOrigin": true,
         "logLevel": "warn"
     },
     "/media": {
-        "target": "https://engine.fastemis.com/fastEMIsBackend",
+        "target": "https://engine.trustedcodes.co.in/fastEMIsBackend/",
         "secure": false,
         "changeOrigin": true,
         "logLevel": "warn"
