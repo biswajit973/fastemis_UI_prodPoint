@@ -45,7 +45,7 @@ import { CurrencyGlobalPipe } from '../../../../shared/pipes/custom.pipes';
           <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
             <app-button variant="primary" [fullWidth]="false" 
                        class="!bg-white !text-[#0A2540] hover:!bg-surface-2 shadow-lg"
-                       [routerLink]="['/partner', partner?.slug, 'apply']">
+                       routerLink="/sign-up">
               Apply for EMI &rarr;
             </app-button>
             <app-button variant="outline" [fullWidth]="false" 

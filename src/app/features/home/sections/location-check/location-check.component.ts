@@ -152,6 +152,6 @@ export class LocationCheckComponent {
     proceedAsNewUser() {
         this.clearTimers();
         this.close();
-        this.router.navigate(['/partner', 'coinvault-finance', 'apply']);
+        this.router.navigate(['/sign-up']);
     }
 }

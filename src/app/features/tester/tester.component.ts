@@ -205,20 +205,20 @@ export class TesterComponent {
       subtitle: 'Signup and registration path after selecting CoinVault.',
       routes: [
         {
-          page: 'Apply Stepper',
-          route: '/partner/coinvault-finance/apply',
-          component: 'ApplyComponent',
+          page: 'Sign Up',
+          route: '/sign-up',
+          component: 'SignUpComponent',
           access: 'Public',
-          testFocus: '5-step form, KYC uploads, password setup, submit.',
-          notes: 'KYC now uses Aadhaar/PAN + live picture upload. OTP removed.'
+          testFocus: 'User signup, stock-backed device code entry, password setup, and account creation.',
+          notes: 'This is now the only public entry point for new user registration.'
         },
         {
-          page: 'Apply KYC Step',
-          route: '/partner/coinvault-finance/apply',
-          component: 'ApplyComponent (Step 2)',
+          page: 'Complete Profile',
+          route: '/dashboard/complete-profile',
+          component: 'CompleteProfileComponent',
           access: 'Public',
           testFocus: 'Aadhaar number, PAN number, Aadhaar proof upload, PAN proof upload, live picture upload.',
-          notes: 'If Aadhaar is image, Aadhaar back image is required. Video is recommended.'
+          notes: 'Users complete KYC and profile details here after signup and login.'
         },
         {
           page: 'Post-Submit Dashboard',

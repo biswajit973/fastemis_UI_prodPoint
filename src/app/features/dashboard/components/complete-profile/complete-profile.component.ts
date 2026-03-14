@@ -26,26 +26,25 @@ import { DeviceStock } from '../../../../core/models/device-stock.model';
         <ng-container *ngIf="!loading()">
           <div class="grid gap-4 xl:grid-cols-[22rem_minmax(0,1fr)] xl:items-start">
             <section class="space-y-4 xl:sticky xl:top-24">
-              <section class="animate-soft-pulse rounded-3xl border border-warning/40 bg-warning/10 p-4 sm:p-5">
+              <section class="rounded-3xl border border-warning/40 bg-warning/10 p-4 sm:p-5">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h1 class="text-lg font-bold text-warning sm:text-xl">Complete these steps to unlock your dashboard</h1>
+                    <div class="inline-flex items-center gap-2 rounded-full border border-warning/35 bg-white/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-warning">
+                      <span class="inline-block h-2.5 w-2.5 rounded-full bg-warning animate-pulse"></span>
+                      Priority
+                    </div>
+                    <h1 class="mt-3 text-lg font-bold text-warning sm:text-xl">Please fill your details as soon as possible</h1>
                     <p class="mt-1 text-sm leading-6 text-warning/90">
-                      Payments, support chat, community, private chats, and agreements will stay locked until this page is fully completed.
+                      Complete your profile early to help us review your case properly and prepare the best EMI offer for you.
                     </p>
                   </div>
                   <div class="rounded-full border border-warning/40 bg-warning/15 px-3 py-1 text-xs font-semibold text-warning">
                     {{ progress() }}% Complete
                   </div>
                 </div>
-                <div class="mt-4 flex flex-wrap gap-2">
-                  <span *ngFor="let item of lockedSections" class="inline-flex items-center gap-1 rounded-full border border-warning/35 bg-white/50 px-3 py-1 text-[11px] font-semibold text-warning">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2"></rect>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                    </svg>
-                    {{ item }}
-                  </span>
+                <div class="mt-4 inline-flex items-center gap-2 rounded-2xl border border-warning/30 bg-white/55 px-3 py-2 text-sm font-medium text-warning/95">
+                  <span class="inline-block h-2 w-2 rounded-full bg-warning animate-pulse"></span>
+                  Finish all required fields to continue smoothly in the EMI process.
                 </div>
               </section>
 

@@ -39,7 +39,7 @@ import { Partner } from '../../../../core/models/partner.model';
              [ngClass]="isScrolled ? 'text-secondary hover:text-primary' : 'text-white/80 hover:text-white'">
             Reviews
           </button>
-          <a [routerLink]="['/partner', partner?.slug, 'apply']" 
+          <a routerLink="/sign-up"
              class="text-sm font-medium transition-standard no-underline"
              [ngClass]="isScrolled ? 'text-primary border-b-2 border-primary' : 'text-white border-b-2 border-white'">
             Apply Now

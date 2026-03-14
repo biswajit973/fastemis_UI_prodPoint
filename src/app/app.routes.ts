@@ -23,10 +23,8 @@ export const routes: Routes = [
     },
     {
         path: 'partner/:slug/apply',
-        loadComponent: () => import('./features/apply/apply.component').then(m => m.ApplyComponent),
-        canActivate: [partnerGuard],
-        title: 'FastEMIs - Registration',
-        data: { breadcrumb: 'Apply' }
+        redirectTo: 'sign-up',
+        pathMatch: 'full'
     },
     {
         path: 'sign-in',

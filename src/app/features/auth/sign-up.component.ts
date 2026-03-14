@@ -24,24 +24,13 @@ import { NavbarComponent } from '../../shared/components/navbar/navbar.component
                 Create Account
               </p>
               <h1 class="mt-4 text-[1.9rem] font-display font-bold leading-tight text-primary sm:text-[2.4rem] lg:text-[2.8rem]">
-                Start your EMI profile in a few simple steps
+                Create your account
               </h1>
-              <p class="mt-3 max-w-xl text-sm leading-6 text-secondary sm:text-[15px]">
-                Fill your details once. Choose your device code from stock or type it manually if your code is not listed yet.
-              </p>
 
               <div class="mt-5 space-y-3 sm:space-y-4">
                 <div class="rounded-2xl border border-border bg-surface px-4 py-3">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">What you need</p>
-                  <p class="mt-1 text-sm leading-6 text-secondary">Your name, email, password, and the device code you want to apply for.</p>
-                </div>
-                <div class="rounded-2xl border border-border bg-surface px-4 py-3">
                   <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">Device code help</p>
                   <p class="mt-1 text-sm leading-6 text-secondary">Search by brand, model, or exact code. If stock is not listed, enter the 6 character code manually.</p>
-                </div>
-                <div class="rounded-2xl border border-border bg-surface px-4 py-3">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">After signup</p>
-                  <p class="mt-1 text-sm leading-6 text-secondary">You will continue to profile completion and the agent review flow from your dashboard.</p>
                 </div>
               </div>
             </aside>
@@ -50,7 +39,6 @@ import { NavbarComponent } from '../../shared/components/navbar/navbar.component
               <div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h2 class="text-xl font-display font-bold text-primary sm:text-2xl">Your details</h2>
-                  <p class="mt-1 text-sm text-secondary sm:text-[15px]">This form is optimized for phone screens first, and expands cleanly on larger displays.</p>
                 </div>
                 <a routerLink="/sign-in" class="inline-flex w-full items-center justify-center rounded-2xl border border-border px-4 py-3 text-sm font-semibold text-primary no-underline hover:bg-surface-2 sm:w-auto">
                   User Sign In

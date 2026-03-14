@@ -85,7 +85,7 @@ export class PartnerComponent implements OnInit, OnDestroy {
             this.routeSub.unsubscribe();
         }
         // We do NOT clear active partner here.
-        // We want the partner color theme to persist if they navigate to /dashboard or /apply.
+        // We want the partner color theme to persist if they navigate deeper into the user flow.
         // It's only cleared explicitly on the Home page.
     }
 }
